@@ -14,9 +14,7 @@ function MonthlyChart({ data }) {
 
   return (
 
-    <div className="bg-white rounded-2xl shadow-md p-6 mt-8">
-
-      <div className="h-96">
+    <div className="h-[350px]">
 
         <ResponsiveContainer width="100%" height="100%">
 
@@ -34,12 +32,16 @@ function MonthlyChart({ data }) {
 
             <Bar
               dataKey="income"
-              fill="#22c55e"
+              fill="#10B981"
+              radius={[10, 10, 0, 0]}
+              animationDuration={1200}
             />
 
             <Bar
               dataKey="expense"
-              fill="#ef4444"
+              fill="#EF4444"
+              radius={[10, 10, 0, 0]}
+              animationDuration={1200}
             />
 
           </BarChart>
@@ -47,8 +49,6 @@ function MonthlyChart({ data }) {
         </ResponsiveContainer>
 
       </div>
-
-    </div>
 
   );
 

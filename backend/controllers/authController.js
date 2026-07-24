@@ -135,8 +135,71 @@ const getProfile = async (req, res) => {
     }
 };
 
+// ==========================
+// Change Password
+// ==========================
+
+const changePassword = async (req, res) => {
+
+    try {
+
+        const { currentPassword, newPassword } = req.body;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({
+                message: "Please fill all fields"
+            });
+        }
+
+        const user = await User.findById(req.user.id);
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found"
+            });
+        }
+
+        const isMatch = await bcrypt.compare(
+            currentPassword,
+            user.password
+        );
+
+        if (!isMatch) {
+            return res.status(400).json({
+                message: "Current password is incorrect"
+            });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+
+        const hashedPassword = await bcrypt.hash(
+            newPassword,
+            salt
+        );
+
+        user.password = hashedPassword;
+
+        await user.save();
+
+        res.json({
+            message: "Password changed successfully"
+        });
+
+    } catch (error) {
+
+        console.log(error);
+
+        res.status(500).json({
+            message: "Server Error"
+        });
+
+    }
+
+};
+
 module.exports = {
     registerUser,
     loginUser,
     getProfile,
+    changePassword,
 };

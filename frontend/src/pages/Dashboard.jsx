@@ -39,6 +39,24 @@ const [showModal, setShowModal] = useState(false);
 
 const [sidebarOpen, setSidebarOpen] = useState(false);
 
+const highestIncome =
+  transactions
+    .filter((t) => t.type === "Income")
+    .reduce((max, t) => (t.amount > max ? t.amount : max), 0);
+
+const highestExpense =
+  transactions
+    .filter((t) => t.type === "Expense")
+    .reduce((max, t) => (t.amount > max ? t.amount : max), 0);
+
+const savingsRate =
+  dashboard.totalIncome > 0
+    ? (
+        (dashboard.balance / dashboard.totalIncome) *
+        100
+      ).toFixed(1)
+    : 0;
+
 const loadDashboard = async () => {
 
     try {
@@ -139,6 +157,16 @@ useEffect(() => {
 
 }, []);
 
+const hour = new Date().getHours();
+
+let greeting = "Good Evening";
+
+if (hour < 12) {
+  greeting = "Good Morning";
+} else if (hour < 18) {
+  greeting = "Good Afternoon";
+}
+
   return (
 
     <div className="flex min-h-screen bg-gray-100">
@@ -159,11 +187,11 @@ useEffect(() => {
         <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-2xl p-5 md:p-8 mt-6 shadow-lg">
 
     <h1 className="text-2xl md:text-3xl font-bold">
-        Welcome Back 👋
+            {greeting} 👋
     </h1>
 
-    <p className="mt-2 text-purple-100">
-        Manage your income and expenses effortlessly.
+    <p className="mt-3 text-purple-100 text-lg">
+       Track your finances, analyze spending and achieve your savings goals.
     </p>
 
 </div>
@@ -174,24 +202,68 @@ useEffect(() => {
             title="Total Income"
             amount={dashboard.totalIncome}
             icon={<FaArrowUp />}
-            color="bg-green-500"
+            color="bg-gradient-to-r from-green-500 to-emerald-600"
           />
 
           <SummaryCard
             title="Total Expense"
             amount={dashboard.totalExpense}
             icon={<FaArrowDown />}
-            color="bg-red-500"
+            color="bg-gradient-to-r from-green-500 to-emerald-600"
           />
 
           <SummaryCard
             title="Balance"
             amount={dashboard.balance}
             icon={<FaWallet />}
-            color="bg-blue-500"
+            color="bg-gradient-to-r from-green-500 to-emerald-600"
           />
 
         </div>
+
+<div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-6">
+
+  <div className="bg-white rounded-2xl shadow-md p-5">
+    <h3 className="text-gray-500 text-sm">
+      Transactions
+    </h3>
+
+    <p className="text-3xl font-bold mt-2">
+      {dashboard.transactionCount}
+    </p>
+  </div>
+
+  <div className="bg-white rounded-2xl shadow-md p-5">
+    <h3 className="text-gray-500 text-sm">
+      Highest Income
+    </h3>
+
+    <p className="text-3xl font-bold text-green-600 mt-2">
+      ₹{highestIncome.toLocaleString()}
+    </p>
+  </div>
+
+  <div className="bg-white rounded-2xl shadow-md p-5">
+    <h3 className="text-gray-500 text-sm">
+      Highest Expense
+    </h3>
+
+    <p className="text-3xl font-bold text-red-600 mt-2">
+      ₹{highestExpense.toLocaleString()}
+    </p>
+  </div>
+
+  <div className="bg-white rounded-2xl shadow-md p-5">
+    <h3 className="text-gray-500 text-sm">
+      Savings Rate
+    </h3>
+
+    <p className="text-3xl font-bold text-purple-600 mt-2">
+      {savingsRate}%
+    </p>
+  </div>
+
+</div>
 
 {/* Charts + Recent Transactions */}
 
@@ -199,23 +271,33 @@ useEffect(() => {
 
   {/* Expense Breakdown */}
 
-  <div className="bg-white rounded-2xl shadow-md p-6">
+  <div className=" bg-white rounded-3xl shadow-lg borderborder-gray-100p-6hover:shadow-2xltransition-allduration-300">
 
-    <div className="flex justify-between items-center mb-6">
+    <div className="flex items-center justify-between mb-6">
 
-      <h2 className="text-2xl font-bold">
-        Expense Breakdown
+     <div>
+
+      <h2 className="text-2xl font-bold text-gray-800">
+         Expense Breakdown
       </h2>
 
-      <button className="text-purple-600 font-semibold hover:text-purple-800">
-        View Report
-      </button>
+      <p className="text-gray-500 text-sm mt-1">
+         Category-wise expense distribution
+      </p>
 
-    </div>
+     </div>
 
-    <ExpenseChart
-      data={categorySummary}
-    />
+    <button
+      className="text-purple-600 hover:text-purple-800 font-semibold transition"
+        >
+        View Report →
+    </button>
+
+</div>
+
+    <div className="h-[350px]">
+  <ExpenseChart data={categorySummary} />
+</div>
 
   </div>
 
@@ -229,15 +311,15 @@ useEffect(() => {
 
 {/* Monthly Chart */}
 
-<div className="bg-white rounded-2xl shadow-md p-6 mt-8">
+  <div className=" bg-white rounded-3xl shadow-lg borderborder-gray-100p-6hover:shadow-2xltransition-allduration-300">
 
   <h2 className="text-2xl font-bold mb-6">
     Monthly Income vs Expense
   </h2>
 
-  <MonthlyChart
-    data={monthlySummary}
-  />
+  <div className="h-[350px]">
+  <MonthlyChart data={monthlySummary} />
+</div>
 
 </div>
 

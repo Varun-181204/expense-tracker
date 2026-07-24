@@ -4,19 +4,25 @@ import API from "../services/api";
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { toast } from "react-toastify";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 function Login() {
 
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
 
   const [password, setPassword] = useState("");
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const { login } = useContext(AuthContext);
 
-  const handleSubmit = async (e) => {
+ const handleSubmit = async (e) => {
   e.preventDefault();
+
+  setLoading(true);
 
   try {
 
@@ -35,69 +41,105 @@ function Login() {
 
   } catch (error) {
 
-    alert(
+    toast.error(
       error.response?.data?.message || "Login Failed"
     );
 
+  } finally {
+
+    setLoading(false);
+
   }
 };
+ return (
+  <div className="min-h-screen bg-gradient-to-br from-purple-700 via-indigo-700 to-blue-700 flex items-center justify-center px-4">
 
-  return (
-    <div
-      style={{
-        width: "350px",
-        margin: "100px auto",
-        padding: "20px",
-        background: "white",
-        borderRadius: "10px",
-        boxShadow: "0 0 10px gray",
-      }}
-    >
-      <h2>Login</h2>
+    <div className="bg-white rounded-3xl shadow-2xl p-10 w-full max-w-md">
 
-      <form onSubmit={handleSubmit}>
+      <div className="text-center">
 
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) =>
-            setEmail(e.target.value)
-          }
-          style={{
-            width: "100%",
-            margin: "10px 0",
-            padding: "10px",
-          }}
-        />
+        <h1 className="text-4xl font-bold text-purple-700">
+          💰 Expense Tracker
+        </h1>
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) =>
-            setPassword(e.target.value)
-          }
-          style={{
-            width: "100%",
-            margin: "10px 0",
-            padding: "10px",
-          }}
-        />
+        <p className="text-gray-500 mt-2">
+          Welcome back! Login to continue.
+        </p>
+
+      </div>
+
+      <form
+        onSubmit={handleSubmit}
+        className="mt-8 space-y-5"
+      >
+
+        <div>
+
+          <label className="block text-sm font-semibold mb-2">
+            Email
+          </label>
+
+          <input
+            type="email"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(e)=>setEmail(e.target.value)}
+            className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500"
+          />
+
+        </div>
+
+<div className="relative">
+
+  <input
+    type={showPassword ? "text" : "password"}
+    placeholder="Enter your password"
+    value={password}
+    onChange={(e) => setPassword(e.target.value)}
+    className="w-full border border-gray-300 rounded-xl px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-purple-500"
+  />
+
+  <button
+    type="button"
+    onClick={() => setShowPassword(!showPassword)}
+    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"
+  >
+    {showPassword ? <FaEyeSlash /> : <FaEye />}
+  </button>
+
+</div>
 
         <button
           type="submit"
-          style={{
-            width: "100%",
-            padding: "10px",
-          }}
+            disabled={loading}
+          className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-semibold transition duration-300"
         >
-          Login
+          {loading ? "Logging in..." : "Login"}
         </button>
 
       </form>
+
+      <div className="mt-8 text-center">
+
+        <p className="text-gray-600">
+
+          Don't have an account?
+
+          <span
+            onClick={() => navigate("/register")}
+            className="ml-2 text-purple-600 font-semibold cursor-pointer hover:underline"
+          >
+            Create Account
+          </span>
+
+        </p>
+
+      </div>
+
     </div>
-  );
+
+  </div>
+);
 }
 
 export default Login;

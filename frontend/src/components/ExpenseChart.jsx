@@ -2,20 +2,17 @@ import { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 
 const COLORS = [
-  "#8B5CF6",
-  "#3B82F6",
-  "#10B981",
-  "#F59E0B",
-  "#EF4444",
-  "#06B6D4",
+  "#7C3AED", // Purple
+  "#3B82F6", // Blue
+  "#10B981", // Green
+  "#F59E0B", // Orange
+  "#EC4899", // Pink
 ];
 
 function ExpenseChart({ data }) {
 
   return (
-    <div className="bg-white rounded-2xl shadow-md p-6 mt-8">
-
-      <div className="h-80">
+         <div className="h-[350px]">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
 
@@ -26,6 +23,8 @@ function ExpenseChart({ data }) {
               innerRadius={70}
               outerRadius={100}
               paddingAngle={4}
+              isAnimationActive={true}
+              animationDuration={1000}
             >
               {data.map((entry, index) => (
                 <Cell
@@ -40,7 +39,6 @@ function ExpenseChart({ data }) {
           </PieChart>
         </ResponsiveContainer>
       </div>
-    </div>
   );
 }
 

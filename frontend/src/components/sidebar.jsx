@@ -51,7 +51,7 @@ left-0
 z-50
 h-screen
 w-72
-bg-white
+bg-gray-50
 shadow-xl
 transform
 transition-transform
@@ -68,33 +68,37 @@ sidebarOpen
 }
 `}
 >
-      {/* Top Section */}
-      <div>
+{/* Top Section */}
+<div>
 
-        {/* Logo */}
-        <div className="flex items-center gap-3 p-6 border-b">
+  {/* Logo */}
+  <div className="flex items-center gap-4 p-6 border-b border-gray-200">
 
-          <div className="bg-purple-600 text-white w-12 h-12 rounded-xl flex items-center justify-center text-2xl">
-            💼
-          </div>
+  <div className="w-14 h-14 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 flex items-center justify-center shadow-lg">
 
-          <div>
-            <h1 className="text-2xl font-bold">Expense Tracker</h1>
+    <span className="text-2xl">💰</span>
 
-            <p className="text-gray-500 text-sm">
-              Personal Finance
-            </p>
-          </div>
+  </div>
 
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="lg:hidden text-2xl"
-            >
+  <div>
 
-              ✕
-          </button>
+    <h1 className="text-xl font-bold text-gray-800">
+      Expense Tracker
+    </h1>
 
-        </div>
+    <p className="text-sm text-gray-500">
+      Personal Finance
+    </p>
+
+  </div>
+
+
+   <button
+   onClick={() => setSidebarOpen(false)}
+   className="lg:hidden text-2xl">
+     ✕
+   </button>
+</div>
 
         {/* Navigation */}
         <nav className="mt-6 px-4 space-y-2">
@@ -105,12 +109,12 @@ sidebarOpen
             className={({ isActive }) =>
               `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                 isActive
-                  ? "bg-purple-100 text-purple-700 font-semibold"
-                  : "text-gray-700 hover:bg-gray-100"
+                  ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md font-semibold"
+                  : "text-gray-700 hover:bg-purple-50 hover:text-purple-700 hover:translate-x-1"
               }`
             }
           >
-            <FaHome />
+            <FaHome className="text-lg" />
             <span>Overview</span>
           </NavLink>
 
@@ -119,13 +123,13 @@ sidebarOpen
             onClick={() => setSidebarOpen(false)}
             className={({ isActive }) =>
               `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                isActive
-                  ? "bg-purple-100 text-purple-700 font-semibold"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`
-            }
+              isActive
+               ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md font-semibold"
+               : "text-gray-700 hover:bg-purple-50 hover:text-purple-700 hover:translate-x-1"
+             }`
+           }
           >
-            <FaExchangeAlt />
+            <FaExchangeAlt className="text-lg" />
             <span>Transactions</span>
           </NavLink>
 
@@ -135,12 +139,12 @@ sidebarOpen
             className={({ isActive }) =>
               `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                 isActive
-                  ? "bg-purple-100 text-purple-700 font-semibold"
-                  : "text-gray-700 hover:bg-gray-100"
+                  ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md font-semibold"
+                  : "text-gray-700 hover:bg-purple-50 hover:text-purple-700 hover:translate-x-1"
               }`
             }
           >
-            <FaList />
+            <FaList className="text-lg" />
             <span>Categories</span>
           </NavLink>
 
@@ -150,12 +154,12 @@ sidebarOpen
             className={({ isActive }) =>
               `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                 isActive
-                  ? "bg-purple-100 text-purple-700 font-semibold"
-                  : "text-gray-700 hover:bg-gray-100"
+                  ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md font-semibold"
+                  : "text-gray-700 hover:bg-purple-50 hover:text-purple-700 hover:translate-x-1"
               }`
             }
           >
-            <FaChartPie />
+            <FaChartPie className="text-lg" />
             <span>Reports</span>
           </NavLink>
 
@@ -165,12 +169,12 @@ sidebarOpen
             className={({ isActive }) =>
               `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                 isActive
-                  ? "bg-purple-100 text-purple-700 font-semibold"
-                  : "text-gray-700 hover:bg-gray-100"
+                  ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md font-semibold"
+                  : "text-gray-700 hover:bg-purple-50 hover:text-purple-700 hover:translate-x-1"
               }`
             }
           >
-            <FaCog />
+            <FaCog className="text-lg" />
             <span>Settings</span>
           </NavLink>
 
@@ -179,11 +183,11 @@ sidebarOpen
       </div>
 
       {/* Bottom User Section */}
-      <div className="border-t p-5">
+      <div className="border-t border-gray-200 p-6 bg-white">
 
         <div className="flex items-center gap-3">
 
-          <div className="w-12 h-12 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold text-lg">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white flex items-center justify-center font-bold text-lg">
             {user.name ? user.name.charAt(0).toUpperCase() : "U"}
           </div>
 
@@ -195,6 +199,16 @@ sidebarOpen
             <p className="text-gray-500 text-sm">
               {user.email}
             </p>
+
+            <div className="flex items-center gap-2 mt-1">
+
+       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+
+        <p className="text-xs text-green-600">
+          Online
+        </p>
+       </div>
+
           </div>
 
         </div>
