@@ -250,6 +250,81 @@ const getMonthlySummary = async (req, res) => {
   }
 };
 
+// ==============================
+// Dashboard Analytics
+// ==============================
+
+const getAnalytics = async (req, res) => {
+  try {
+
+    const transactions = await Transaction.find({
+      user: req.user.id,
+    });
+
+    const incomes = transactions.filter(
+      (t) => t.type === "Income"
+    );
+
+    const expenses = transactions.filter(
+      (t) => t.type === "Expense"
+    );
+
+    const highestIncome =
+      incomes.length > 0
+        ? Math.max(...incomes.map((t) => t.amount))
+        : 0;
+
+    const highestExpense =
+      expenses.length > 0
+        ? Math.max(...expenses.map((t) => t.amount))
+        : 0;
+
+    const averageIncome =
+      incomes.length > 0
+        ? incomes.reduce((sum, t) => sum + t.amount, 0) /
+          incomes.length
+        : 0;
+
+    const averageExpense =
+      expenses.length > 0
+        ? expenses.reduce((sum, t) => sum + t.amount, 0) /
+          expenses.length
+        : 0;
+
+    const totalIncome = incomes.reduce(
+      (sum, t) => sum + t.amount,
+      0
+    );
+
+    const totalExpense = expenses.reduce(
+      (sum, t) => sum + t.amount,
+      0
+    );
+
+    const savingsRate =
+      totalIncome > 0
+        ? ((totalIncome - totalExpense) / totalIncome) * 100
+        : 0;
+
+    res.json({
+      highestIncome,
+      highestExpense,
+      averageIncome,
+      averageExpense,
+      savingsRate,
+    });
+
+  } catch (error) {
+
+    console.log(error);
+
+    res.status(500).json({
+      message: "Server Error",
+    });
+
+  }
+};
+
 module.exports = {
   addTransaction,
   getTransactions,
@@ -258,4 +333,5 @@ module.exports = {
   getSummary,
   getCategorySummary,
   getMonthlySummary,
+  getAnalytics,
 };

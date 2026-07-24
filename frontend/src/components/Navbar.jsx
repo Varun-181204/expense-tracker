@@ -22,15 +22,20 @@ function Navbar({
 
 useEffect(() => {
 
-  const loadProfile = async () => {
+const loadProfile = async () => {
+
   try {
+
     const data = await getProfile();
 
     setUser(data);
 
   } catch (error) {
+
     console.log(error);
+
   }
+
 };
 
   loadProfile();
@@ -54,9 +59,13 @@ useEffect(() => {
 
     <div>
 
-    <h1 className="text-3xl font-bold text-gray-800">
-      Welcome Back{user.name ? `, ${user.name}` : ""} 👋
-    </h1>
+      <h1 className="text-3xl font-bold text-gray-800">
+        Welcome Back
+      {user.name
+        ? `, ${user.name.charAt(0).toUpperCase() + user.name.slice(1)}`
+        : ""}{" "}
+         👋
+      </h1>
 
     <p className="text-gray-500 mt-2">
         Manage your personal finances with confidence.

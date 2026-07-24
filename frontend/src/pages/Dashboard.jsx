@@ -14,6 +14,8 @@ import AddTransactionModal from "../components/AddTransactionModal";
 
 import { getDashboard } from "../services/dashboardApi";
 
+import { getAnalytics } from "../services/analyticsApi";
+
 import {
   FaArrowUp,
   FaArrowDown,
@@ -141,6 +143,8 @@ const refreshDashboard = async () => {
         loadTransactions(),
         loadCategorySummary(),
         loadMonthlySummary(),
+        loadAnalytics(),
+
     ]);
 
 };
@@ -155,6 +159,8 @@ useEffect(() => {
 
     loadMonthlySummary();
 
+    loadAnalytics();
+
 }, []);
 
 const hour = new Date().getHours();
@@ -166,6 +172,29 @@ if (hour < 12) {
 } else if (hour < 18) {
   greeting = "Good Afternoon";
 }
+
+const [analytics, setAnalytics] = useState({
+  highestIncome: 0,
+  highestExpense: 0,
+  averageIncome: 0,
+  averageExpense: 0,
+  savingsRate: 0,
+});
+
+const loadAnalytics = async () => {
+  try {
+
+    const data = await getAnalytics();
+
+    setAnalytics(data);
+
+  } catch (error) {
+
+    console.log(error);
+
+  }
+};
+
 
   return (
 
@@ -186,15 +215,15 @@ if (hour < 12) {
 
         <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-2xl p-5 md:p-8 mt-6 shadow-lg">
 
-    <h1 className="text-2xl md:text-3xl font-bold">
-            {greeting} 👋
-    </h1>
+            <h1 className="text-2xl md:text-3xl font-bold">
+              📊 Financial Dashboard
+            </h1>
 
-    <p className="mt-3 text-purple-100 text-lg">
-       Track your finances, analyze spending and achieve your savings goals.
-    </p>
+             <p className="mt-2 text-purple-100">
+               Monitor your income, expenses and savings with real-time insights.
+             </p>
 
-</div>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
 

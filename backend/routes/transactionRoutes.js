@@ -11,10 +11,11 @@ const {
   deleteTransaction,
   getSummary,
   getCategorySummary,
-  getMonthlySummary
+  getMonthlySummary,
+  getAnalytics
 } = require("../controllers/transactionController");
 
-
+router.get("/analytics", protect, getAnalytics);
 router.post("/", protect, addTransaction);
 router.get("/summary", protect, getSummary);
 router.get("/category-summary", protect, getCategorySummary);
