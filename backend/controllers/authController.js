@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const cloudinary = require("../config/cloudinary");
 
 // ==========================
 // Register User
@@ -113,6 +114,11 @@ const loginUser = async (req, res) => {
 
 };
 
+// ==========================
+// get profile 
+// ==========================
+
+
 
 const getProfile = async (req, res) => {
     try {
@@ -133,6 +139,47 @@ const getProfile = async (req, res) => {
             message: "Server Error",
         });
     }
+};
+
+// ==========================
+// Upload Profile Image
+// ==========================
+
+const uploadProfileImage = async (req, res) => {
+  try {
+
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({
+        message: "Please upload an image",
+      });
+    }
+
+    user.profileImage = req.file.path;
+
+    await user.save();
+
+    res.json({
+      message: "Profile image updated successfully",
+      profileImage: user.profileImage,
+    });
+
+  } catch (error) {
+
+    console.log(error);
+
+    res.status(500).json({
+      message: "Server Error",
+    });
+
+  }
 };
 
 // ==========================
@@ -202,4 +249,5 @@ module.exports = {
     loginUser,
     getProfile,
     changePassword,
+    uploadProfileImage,
 };

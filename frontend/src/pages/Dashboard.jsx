@@ -17,6 +17,11 @@ import { getDashboard } from "../services/dashboardApi";
 import { getAnalytics } from "../services/analyticsApi";
 
 import {
+  getBudget,
+  setBudget as saveBudget
+} from "../services/budgetApi";
+
+import {
   FaArrowUp,
   FaArrowDown,
   FaWallet,
@@ -41,23 +46,15 @@ const [showModal, setShowModal] = useState(false);
 
 const [sidebarOpen, setSidebarOpen] = useState(false);
 
-const highestIncome =
-  transactions
-    .filter((t) => t.type === "Income")
-    .reduce((max, t) => (t.amount > max ? t.amount : max), 0);
+const [budget, setBudget] = useState({
+  budget: 0,
+  spent: 0,
+  remaining: 0,
+});
 
-const highestExpense =
-  transactions
-    .filter((t) => t.type === "Expense")
-    .reduce((max, t) => (t.amount > max ? t.amount : max), 0);
+const [showBudgetModal, setShowBudgetModal] = useState(false);
 
-const savingsRate =
-  dashboard.totalIncome > 0
-    ? (
-        (dashboard.balance / dashboard.totalIncome) *
-        100
-      ).toFixed(1)
-    : 0;
+const [budgetAmount, setBudgetAmount] = useState("");
 
 const loadDashboard = async () => {
 
@@ -144,6 +141,7 @@ const refreshDashboard = async () => {
         loadCategorySummary(),
         loadMonthlySummary(),
         loadAnalytics(),
+        loadBudget(), 
 
     ]);
 
@@ -160,6 +158,8 @@ useEffect(() => {
     loadMonthlySummary();
 
     loadAnalytics();
+
+    loadBudget();
 
 }, []);
 
@@ -180,6 +180,52 @@ const [analytics, setAnalytics] = useState({
   averageExpense: 0,
   savingsRate: 0,
 });
+
+
+const loadBudget = async () => {
+
+  try {
+
+    const data = await getBudget();
+
+    setBudget(data);
+
+  } catch (error) {
+
+    console.log(error);
+
+  }
+
+};
+
+const handleSaveBudget = async () => {
+
+  if (!budgetAmount || budgetAmount <= 0) {
+    alert("Enter a valid budget");
+    return;
+  }
+
+  try {
+
+    await saveBudget({
+    month: new Date().getMonth() + 1,
+    year: new Date().getFullYear(),
+    amount: Number(budgetAmount),
+  });
+
+    await refreshDashboard();
+
+    setShowBudgetModal(false);
+
+    setBudgetAmount("");
+
+  } catch (error) {
+
+    console.log(error);
+
+  }
+
+};
 
 const loadAnalytics = async () => {
   try {
@@ -250,7 +296,7 @@ const loadAnalytics = async () => {
 
         </div>
 
-<div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-6">
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mt-6">
 
   <div className="bg-white rounded-2xl shadow-md p-5">
     <h3 className="text-gray-500 text-sm">
@@ -268,7 +314,7 @@ const loadAnalytics = async () => {
     </h3>
 
     <p className="text-3xl font-bold text-green-600 mt-2">
-      ₹{highestIncome.toLocaleString()}
+      ₹{Number(analytics.highestIncome).toLocaleString("en-IN")}
     </p>
   </div>
 
@@ -278,7 +324,17 @@ const loadAnalytics = async () => {
     </h3>
 
     <p className="text-3xl font-bold text-red-600 mt-2">
-      ₹{highestExpense.toLocaleString()}
+      ₹{Number(analytics.highestExpense).toLocaleString("en-IN")}
+    </p>
+  </div>
+
+  <div className="bg-white rounded-2xl shadow-md p-5">
+    <h3 className="text-gray-500 text-sm">
+      Average Expense
+    </h3>
+
+    <p className="text-3xl font-bold text-orange-500 mt-2">
+      ₹{Number(analytics.averageExpense).toLocaleString("en-IN")}
     </p>
   </div>
 
@@ -288,8 +344,93 @@ const loadAnalytics = async () => {
     </h3>
 
     <p className="text-3xl font-bold text-purple-600 mt-2">
-      {savingsRate}%
+      {analytics.savingsRate.toFixed(1)}%
     </p>
+  </div>
+
+</div>
+
+<div className="bg-white rounded-2xl shadow-md p-6 mt-6">
+
+  <div className="flex justify-between items-center mb-4">
+
+    <h2 className="text-2xl font-bold">
+      Monthly Budget
+    </h2>
+
+    <button
+      onClick={() => setShowBudgetModal(true)}
+      className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
+    >
+        Set Budget
+    </button>
+
+    <span className="text-purple-600 font-semibold">
+      ₹{Number(budget?.remaining || 0).toLocaleString("en-IN")}
+    </span>
+
+  </div>
+
+  <div className="w-full bg-gray-200 rounded-full h-4">
+
+    <div
+      className={`h-4 rounded-full ${
+        budget.spent > budget.budget
+          ? "bg-red-500"
+          : "bg-green-500"
+      }`}
+      style={{
+        width: `${
+          budget.budget > 0
+            ? Math.min(
+                (budget.spent / budget.budget) * 100,
+                100
+              )
+            : 0
+        }%`,
+      }}
+    ></div>
+
+  </div>
+
+  <div className="grid grid-cols-3 gap-4 mt-6 text-center">
+
+    <div>
+
+      <p className="text-gray-500 text-sm">
+        Budget
+      </p>
+
+      <h3 className="font-bold text-lg">
+        ₹{Number(budget.budget || 0).toLocaleString("en-IN")}
+      </h3>
+
+    </div>
+
+    <div>
+
+      <p className="text-gray-500 text-sm">
+        Spent
+      </p>
+
+      <h3 className="font-bold text-red-500 text-lg">
+        ₹{Number(budget.spent || 0).toLocaleString("en-IN")}
+      </h3>
+
+    </div>
+
+    <div>
+
+      <p className="text-gray-500 text-sm">
+        Remaining
+      </p>
+
+      <h3 className="font-bold text-green-600 text-lg">
+        ₹{Number(budget.remaining || 0).toLocaleString("en-IN")}
+      </h3>
+
+    </div>
+
   </div>
 
 </div>
@@ -351,6 +492,48 @@ const loadAnalytics = async () => {
 </div>
 
 </div>
+
+{showBudgetModal && (
+
+  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+
+    <div className="bg-white rounded-2xl p-6 w-96">
+
+      <h2 className="text-2xl font-bold mb-6">
+        Set Monthly Budget
+      </h2>
+
+      <input
+        type="number"
+        placeholder="Enter Budget"
+        value={budgetAmount}
+        onChange={(e) => setBudgetAmount(e.target.value)}
+        className="w-full border rounded-xl px-4 py-3 mb-6"
+      />
+
+      <div className="flex justify-end gap-3">
+
+        <button
+          onClick={() => setShowBudgetModal(false)}
+          className="px-5 py-2 rounded-lg border"
+        >
+          Cancel
+        </button>
+
+        <button
+          onClick={handleSaveBudget}
+          className="bg-purple-600 text-white px-5 py-2 rounded-lg hover:bg-purple-700"
+        >
+          Save
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+)}
 
 <button
   onClick={() => setShowModal(true)}
