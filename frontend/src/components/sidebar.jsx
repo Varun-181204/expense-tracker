@@ -19,7 +19,30 @@ function Sidebar({
   const [user, setUser] = useState({
   name: "",
   email: "",
+  profileImage: "",
 });
+
+useEffect(() => {
+
+  const loadProfile = async () => {
+
+    try {
+
+      const data = await getProfile();
+
+      setUser(data);
+
+    } catch (error) {
+
+      console.log(error);
+
+    }
+
+  };
+
+  loadProfile();
+
+}, []);
 
 useEffect(() => {
 
@@ -82,9 +105,27 @@ sidebarOpen
 
   <div>
 
-    <h1 className="text-xl font-bold text-gray-800">
-      Expense Tracker
-    </h1>
+    <div className="flex flex-col items-center mb-8">
+
+  <img
+    src={
+      user.profileImage
+        ? user.profileImage
+        : `https://ui-avatars.com/api/?name=${user.name}`
+    }
+    alt="Profile"
+    className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
+  />
+
+  <h2 className="mt-4 text-lg font-bold text-white">
+    {user.name}
+  </h2>
+
+  <p className="text-sm text-purple-200">
+    {user.email}
+  </p>
+
+</div>
 
     <p className="text-sm text-gray-500">
       Personal Finance

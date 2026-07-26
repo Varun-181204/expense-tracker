@@ -28,23 +28,31 @@ const [currentPage, setCurrentPage] = useState(1);
 
 const [showAddModal, setShowAddModal] = useState(false);
 
+const [loading, setLoading] = useState(true);
+
 const transactionsPerPage = 10;
 
-  const loadTransactions = async () => {
+const loadTransactions = async () => {
 
-    try {
+  try {
 
-      const data = await getTransactions();
+    setLoading(true);
 
-      setTransactions(data);
+    const data = await getTransactions();
 
-    } catch (error) {
+    setTransactions(data);
 
-      console.log(error);
+  } catch (error) {
 
-    }
+    console.log(error);
 
-  };
+  } finally {
+
+    setLoading(false);
+
+  }
+
+};
 
 useEffect(() => {
 
@@ -72,7 +80,7 @@ const handleDelete = async (id) => {
 
         await deleteTransaction(id);
 
-        toast.success("Transaction Deleted!");
+        toast.success("Transaction deleted successfully");
 
         loadTransactions();
 
@@ -82,7 +90,7 @@ const handleDelete = async (id) => {
 
         console.log(error);
 
-        alert("Delete Failed");
+        toast.error("Failed to delete transaction");
 
     }
 
@@ -166,13 +174,35 @@ useEffect(() => {
   setCurrentPage(1);
 }, [search, typeFilter, categoryFilter, dateFilter, sortBy]);
 
+if (loading) {
+
   return (
+
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+
+      <div className="text-center">
+
+        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 mx-auto"></div>
+
+        <p className="mt-4 text-gray-600 font-medium">
+          Loading Transactions...
+        </p>
+
+      </div>
+
+    </div>
+
+  );
+
+}  
+
+return (
 
     <div className="flex bg-gray-100 min-h-screen">
 
       <Sidebar />
 
-      <div className="flex-1 p-8">
+      <div className="flex-1 p-4 md:p-6 lg:p-8">
 
         <Navbar />
 
@@ -186,7 +216,7 @@ useEffect(() => {
 
             <button
               onClick={() => setShowAddModal(true)}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2 rounded-lg transition"
+              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-6 py-3 rounded-xl shadow-lg transition-all duration-300"
             >
               + Add Transaction
             </button>
@@ -249,14 +279,14 @@ useEffect(() => {
 
     <div className="bg-white rounded-xl p-10 text-center">
 
-      <div className="text-5xl mb-4">📭</div>
+      <div className="text-6xl mb-5">💸</div>
 
       <h2 className="text-xl font-bold">
-        No Transactions Found
+        No Transactions Yet......
       </h2>
 
       <p className="text-gray-500 mt-2">
-        Add your first transaction.
+        Start tracking your finances by adding your first transaction.
       </p>
 
     </div>
@@ -267,7 +297,7 @@ useEffect(() => {
 
       <div
         key={transaction._id}
-        className="bg-white rounded-xl shadow-sm hover:shadow-lg transition p-5 mb-4"
+        className="bg-white rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 p-5 mb-4 border border-gray-100"
       >
 
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
@@ -304,14 +334,14 @@ useEffect(() => {
 
               <button
                 onClick={() => handleEdit(transaction)}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
+                className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600"
               >
                 Edit
               </button>
 
               <button
                 onClick={() => handleDelete(transaction._id)}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg"
+                className="bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700"
               >
                 Delete
               </button>
@@ -349,7 +379,7 @@ useEffect(() => {
     <button
       key={index}
       onClick={() => setCurrentPage(index + 1)}
-      className={`w-10 h-10 rounded-full ${
+      className={`w-11 h-11 rounded-full ${
         currentPage === index + 1
           ? "bg-purple-600 text-white"
           : "bg-gray-200 hover:bg-gray-300"
@@ -396,7 +426,6 @@ useEffect(() => {
           loadTransactions();
           setCurrentPage(1);
         }}
-          Otherwise i
       />
     </div>
 

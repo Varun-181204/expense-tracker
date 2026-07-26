@@ -19,6 +19,7 @@ function Navbar({
   const [user, setUser] = useState({
   name: "",
   email: "",
+  profileImage: "",
 });
 
 const [showNotifications, setShowNotifications] = useState(false);
@@ -200,6 +201,34 @@ const {
     <FaSignOutAlt />
     Logout
   </button>
+
+  {/* Profile */}
+
+<div className="flex items-center gap-3">
+
+  <img
+    src={
+      user.profileImage
+        ? user.profileImage
+        : `https://ui-avatars.com/api/?name=${user.name}`
+    }
+    alt="Profile"
+    className="w-12 h-12 rounded-full object-cover border-2 border-purple-500"
+  />
+
+  <div className="hidden md:block">
+
+    <h3 className="font-semibold text-gray-800">
+      {user.name}
+    </h3>
+
+    <p className="text-sm text-gray-500">
+      Welcome Back
+    </p>
+
+  </div>
+
+</div>
 
 </div>
 

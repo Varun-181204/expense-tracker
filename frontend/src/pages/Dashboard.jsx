@@ -271,7 +271,7 @@ const loadAnalytics = async () => {
 
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
 
           <SummaryCard
             title="Total Income"
@@ -284,21 +284,21 @@ const loadAnalytics = async () => {
             title="Total Expense"
             amount={dashboard.totalExpense}
             icon={<FaArrowDown />}
-            color="bg-gradient-to-r from-green-500 to-emerald-600"
+            color="bg-gradient-to-r from-red-500 to-rose-600"
           />
 
           <SummaryCard
             title="Balance"
             amount={dashboard.balance}
             icon={<FaWallet />}
-            color="bg-gradient-to-r from-green-500 to-emerald-600"
+            color="bg-gradient-to-r from-purple-500 to-indigo-600"
           />
 
         </div>
 
-<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mt-6">
+<div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6 mt-8">
 
-  <div className="bg-white rounded-2xl shadow-md p-5">
+  <div className="bg-white rounded-2xl shadow-md hover:shadow-xl transition duration-300 p-5">
     <h3 className="text-gray-500 text-sm">
       Transactions
     </h3>
@@ -318,7 +318,7 @@ const loadAnalytics = async () => {
     </p>
   </div>
 
-  <div className="bg-white rounded-2xl shadow-md p-5">
+  <div className="bg-white rounded-2xl shadow-md hover:shadow-xl transition duration-300 p-5">
     <h3 className="text-gray-500 text-sm">
       Highest Expense
     </h3>
@@ -328,7 +328,7 @@ const loadAnalytics = async () => {
     </p>
   </div>
 
-  <div className="bg-white rounded-2xl shadow-md p-5">
+  <div className="bg-white rounded-2xl shadow-md hover:shadow-xl transition duration-300 p-5">
     <h3 className="text-gray-500 text-sm">
       Average Expense
     </h3>
@@ -338,7 +338,7 @@ const loadAnalytics = async () => {
     </p>
   </div>
 
-  <div className="bg-white rounded-2xl shadow-md p-5">
+  <div className="bg-white rounded-2xl shadow-md hover:shadow-xl transition duration-300 p-5">
     <h3 className="text-gray-500 text-sm">
       Savings Rate
     </h3>
@@ -350,7 +350,7 @@ const loadAnalytics = async () => {
 
 </div>
 
-<div className="bg-white rounded-2xl shadow-md p-6 mt-6">
+<div className="bg-gradient-to-r from-white to-purple-50 rounded-3xl shadow-lg p-6 mt-8">
 
   <div className="flex justify-between items-center mb-4">
 
@@ -441,7 +441,7 @@ const loadAnalytics = async () => {
 
   {/* Expense Breakdown */}
 
-  <div className=" bg-white rounded-3xl shadow-lg borderborder-gray-100p-6hover:shadow-2xltransition-allduration-300">
+  <div className="bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-lg border border-gray-100 p-6 hover:shadow-2xl transition-all duration-300">
 
     <div className="flex items-center justify-between mb-6">
 
@@ -481,7 +481,7 @@ const loadAnalytics = async () => {
 
 {/* Monthly Chart */}
 
-  <div className=" bg-white rounded-3xl shadow-lg borderborder-gray-100p-6hover:shadow-2xltransition-allduration-300">
+  <div className="bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-lg border border-gray-100 p-6 hover:shadow-2xl transition-all duration-300">
 
   <h2 className="text-2xl font-bold mb-6">
     Monthly Income vs Expense
@@ -537,8 +537,8 @@ const loadAnalytics = async () => {
 
 <button
   onClick={() => setShowModal(true)}
-  className="fixed bottom-6 right-6 lg:left-1/2 lg:-translate-x-1/2 bg-purple-600 hover:bg-purple-700 text-white px-6 md:px-10 py-3 md:py-4 rounded-full shadow-2xl transition duration-300"
-  >
+  className="fixed bottom-6 right-6 lg:left-1/2 lg:-translate-x-1/2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 md:px-12 py-4 rounded-full shadow-2xl transition duration-300"
+>
      + Add Transaction
 </button>
 

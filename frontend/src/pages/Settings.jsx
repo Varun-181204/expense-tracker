@@ -1,11 +1,15 @@
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import { useEffect, useState } from "react";
-import { getProfile } from "../services/profileApi";
+import {
+  getProfile,
+  uploadProfileImage,
+} from "../services/profileApi";
 import { useNavigate } from "react-router-dom";
 
 import { changePassword } from "../services/settingsApi";
 import { toast } from "react-toastify";
+
 
 function Settings() {
 
@@ -39,6 +43,8 @@ function Settings() {
     loadProfile();
 
   }, []);
+
+  const [selectedImage, setSelectedImage] = useState(null);
 
   const handleLogout = () => {
 
@@ -103,6 +109,43 @@ const handleChangePassword = async () => {
 
 };
 
+const handleImageUpload = async () => {
+
+  if (!selectedImage) {
+    toast.error("Please select an image");
+    return;
+  }
+
+  try {
+
+    const formData = new FormData();
+
+    formData.append(
+      "profileImage",
+      selectedImage
+    );
+
+    const data = await uploadProfileImage(formData);
+
+    setUser((prev) => ({
+      ...prev,
+      profileImage: data.profileImage,
+    }));
+
+    setSelectedImage(null);
+
+    toast.success("Profile photo updated!");
+
+  } catch (error) {
+
+    console.log(error);
+
+    toast.error("Image upload failed");
+
+  }
+
+};
+
   return (
 
     <div className="flex min-h-screen bg-gray-100">
@@ -119,31 +162,59 @@ const handleChangePassword = async () => {
 
         <div className="space-y-6">
 
-          {/* Profile */}
+{/* Profile */}
 
-          <div className="bg-white rounded-2xl shadow-md p-6">
+<div className="bg-white rounded-2xl shadow-md p-6">
 
-            <h2 className="text-xl font-bold mb-4">
-              👤 Profile
-            </h2>
+  <h2 className="text-xl font-bold mb-4">
+    👤 Profile
+  </h2>
 
-            <p className="text-gray-500">
-              Name
-            </p>
+  <div className="flex flex-col items-center mb-6">
 
-            <h3 className="text-lg font-semibold">
-              {user.name}
-            </h3>
+    <img
+      src={
+        user.profileImage
+          ? user.profileImage
+          : `https://ui-avatars.com/api/?name=${user.name}`
+      }
+      alt="Profile"
+      className="w-28 h-28 rounded-full object-cover border-4 border-purple-500"
+    />
 
-            <p className="text-gray-500 mt-4">
-              Email
-            </p>
+    <input
+      type="file"
+      accept="image/*"
+      onChange={(e) => setSelectedImage(e.target.files[0])}
+      className="mt-4"
+    />
 
-            <h3 className="text-lg font-semibold">
-              {user.email}
-            </h3>
+    <button
+      onClick={handleImageUpload}
+      className="mt-4 bg-purple-600 hover:bg-purple-700 text-white px-5 py-2 rounded-xl"
+    >
+      Upload Photo
+    </button>
 
-          </div>
+  </div>
+
+  <p className="text-gray-500">
+    Name
+  </p>
+
+  <h3 className="text-lg font-semibold">
+    {user.name}
+  </h3>
+
+  <p className="text-gray-500 mt-4">
+    Email
+  </p>
+
+  <h3 className="text-lg font-semibold">
+    {user.email}
+  </h3>
+
+</div>
 
           {/* Security */}
 
