@@ -1,28 +1,13 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-
 import App from "./App";
-
+import { AuthProvider } from "./context/AuthContext";
 import "./index.css";
 
-import { NotificationProvider } from "./context/NotificationContext";
-
-import AuthProvider from "./context/AuthContext";
-
-import { ThemeProvider } from "./context/ThemeContext";
-
-ReactDOM.createRoot(
-  document.getElementById("root")
-).render(
-
-<AuthProvider>
-
-<ThemeProvider>
-  <NotificationProvider>
-    <App />
-  </NotificationProvider>
-</ThemeProvider>
-
-</AuthProvider>
-
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  </React.StrictMode>
 );

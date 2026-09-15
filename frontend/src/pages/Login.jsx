@@ -1,145 +1,138 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import API from "../services/api";
-import { useContext } from "react";
-import { AuthContext } from "../context/AuthContext";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { FaEnvelope, FaLock, FaWallet } from "react-icons/fa";
+import { login as loginApi } from "../services/authService";
+import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
 
-function Login() {
+const Login = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
+  const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState("");
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
-  const [password, setPassword] = useState("");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!email.trim() || !password) {
+      setError("Please fill in both email and password.");
+      return;
+    }
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+    try {
+      setLoading(true);
+      setError("");
+      const data = await loginApi({ email, password });
+      login(data.user, data.token);
+      toast.success(`Welcome back, ${data.user.name}!`);
+      navigate("/dashboard");
+    } catch (err) {
+      setError(err.message || "Failed to log in. Please check your credentials.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const { login } = useContext(AuthContext);
-
- const handleSubmit = async (e) => {
-  e.preventDefault();
-
-  setLoading(true);
-
-  try {
-
-    const response = await API.post("/auth/login", {
-      email,
-      password,
-    });
-
-    console.log(response.data);
-
-    login(response.data.token);
-
-    toast.success("Welcome Back!");
-
-    navigate("/dashboard");
-
-  } catch (error) {
-
-    toast.error(
-      error.response?.data?.message || "Login Failed"
-    );
-
-  } finally {
-
-    setLoading(false);
-
-  }
-};
- return (
-  <div className="min-h-screen bg-gradient-to-br from-purple-700 via-indigo-700 to-blue-700 flex items-center justify-center px-4">
-
-    <div className="bg-white rounded-3xl shadow-2xl p-10 w-full max-w-md">
-
-      <div className="text-center">
-
-        <h1 className="text-4xl font-bold text-purple-700">
-          💰 Expense Tracker
-        </h1>
-
-        <p className="text-gray-500 mt-2">
-          Welcome back! Login to continue.
-        </p>
-
-      </div>
-
-      <form
-        onSubmit={handleSubmit}
-        className="mt-8 space-y-5"
-      >
-
-        <div>
-
-          <label className="block text-sm font-semibold mb-2">
-            Email
-          </label>
-
-          <input
-            type="email"
-            placeholder="Enter your email"
-            value={email}
-            onChange={(e)=>setEmail(e.target.value)}
-            className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500"
-          />
-
+  return (
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+      <div className="max-w-md w-full">
+        {/* Brand Logo & Title */}
+        <div className="text-center mb-8">
+          <div className="w-14 h-14 rounded-2xl bg-indigo-600 text-white mx-auto flex items-center justify-center text-2xl shadow-lg shadow-indigo-600/30 mb-3">
+            <FaWallet />
+          </div>
+          <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 tracking-tight">
+            ExpenseTrack
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">
+            Sign in to manage your budget and finances
+          </p>
         </div>
 
-<div className="relative">
+        {/* Login Card */}
+        <div className="bg-white rounded-3xl p-8 shadow-xl border border-slate-200/80">
+          {error && (
+            <div className="mb-6 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm font-medium">
+              {error}
+            </div>
+          )}
 
-  <input
-    type={showPassword ? "text" : "password"}
-    placeholder="Enter your password"
-    value={password}
-    onChange={(e) => setPassword(e.target.value)}
-    className="w-full border border-gray-300 rounded-xl px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-purple-500"
-  />
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
+                Email Address
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <FaEnvelope />
+                </div>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@example.com"
+                  required
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                />
+              </div>
+            </div>
 
-  <button
-    type="button"
-    onClick={() => setShowPassword(!showPassword)}
-    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"
-  >
-    {showPassword ? <FaEyeSlash /> : <FaEye />}
-  </button>
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
+                Password
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <FaLock />
+                </div>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                />
+              </div>
+            </div>
 
-</div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full mt-2 py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm shadow-md hover:shadow-lg transition disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Signing in...</span>
+                </>
+              ) : (
+                "Sign In"
+              )}
+            </button>
+          </form>
 
-        <button
-          type="submit"
-            disabled={loading}
-          className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-semibold transition duration-300"
-        >
-          {loading ? "Logging in..." : "Login"}
-        </button>
-
-      </form>
-
-      <div className="mt-8 text-center">
-
-        <p className="text-gray-600">
-
-          Don't have an account?
-
-          <span
-            onClick={() => navigate("/register")}
-            className="ml-2 text-purple-600 font-semibold cursor-pointer hover:underline"
-          >
-            Create Account
-          </span>
-
-        </p>
-
+          <div className="mt-6 text-center text-sm text-slate-500">
+            Don't have an account?{" "}
+            <Link
+              to="/register"
+              className="text-indigo-600 font-semibold hover:text-indigo-700 hover:underline"
+            >
+              Create an account
+            </Link>
+          </div>
+        </div>
       </div>
-
     </div>
-
-  </div>
-);
-}
+  );
+};
 
 export default Login;

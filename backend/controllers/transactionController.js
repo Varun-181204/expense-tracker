@@ -1,337 +1,221 @@
 const Transaction = require("../models/Transaction");
-const mongoose = require("mongoose");
 
-// ===============================
-// Add Transaction
-// ===============================
-
-const addTransaction = async (req, res) => {
+// @desc    Get all transactions for logged in user (with search, filters, and pagination)
+// @route   GET /api/transactions
+// @access  Private
+const getTransactions = async (req, res, next) => {
   try {
-    const { title, amount, type, category } = req.body;
+    const { search, type, category, startDate, endDate, sortBy, page, limit } = req.query;
 
-    if (!title || !amount || !type || !category) {
+    const query = { user: req.user._id };
+
+    // Filter by type: 'income' or 'expense'
+    if (type && type !== "all") {
+      query.type = type.toLowerCase();
+    }
+
+    // Filter by category
+    if (category && category !== "all") {
+      query.category = { $regex: new RegExp(`^${category.trim()}$`, "i") };
+    }
+
+    // Search in title and description
+    if (search && search.trim()) {
+      const searchRegex = { $regex: search.trim(), $options: "i" };
+      query.$or = [{ title: searchRegex }, { description: searchRegex }, { category: searchRegex }];
+    }
+
+    // Filter by date range
+    if (startDate || endDate) {
+      query.date = {};
+      if (startDate) {
+        query.date.$gte = new Date(startDate);
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        query.date.$lte = end;
+      }
+    }
+
+    // Sorting
+    let sortOptions = { date: -1, createdAt: -1 };
+    if (sortBy === "date_asc") sortOptions = { date: 1 };
+    else if (sortBy === "date_desc") sortOptions = { date: -1 };
+    else if (sortBy === "amount_desc") sortOptions = { amount: -1 };
+    else if (sortBy === "amount_asc") sortOptions = { amount: 1 };
+
+    // Pagination
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = parseInt(limit, 10) || 0; // 0 means return all
+    const skip = limitNum > 0 ? (pageNum - 1) * limitNum : 0;
+
+    let transactionQuery = Transaction.find(query).sort(sortOptions);
+    if (limitNum > 0) {
+      transactionQuery = transactionQuery.skip(skip).limit(limitNum);
+    }
+
+    const [transactions, totalCount] = await Promise.all([
+      transactionQuery,
+      Transaction.countDocuments(query),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      count: transactions.length,
+      totalCount,
+      page: pageNum,
+      totalPages: limitNum > 0 ? Math.ceil(totalCount / limitNum) : 1,
+      transactions,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get single transaction by ID
+// @route   GET /api/transactions/:id
+// @access  Private
+const getTransactionById = async (req, res, next) => {
+  try {
+    const transaction = await Transaction.findById(req.params.id);
+
+    if (!transaction) {
+      return res.status(404).json({ message: "Transaction not found" });
+    }
+
+    // Verify ownership
+    if (transaction.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Not authorized to access this transaction" });
+    }
+
+    res.status(200).json(transaction);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Create a new transaction
+// @route   POST /api/transactions
+// @access  Private
+const createTransaction = async (req, res, next) => {
+  try {
+    const { title, amount, type, category, date, description } = req.body;
+
+    if (!title || amount === undefined || !type || !category) {
       return res.status(400).json({
-        message: "All fields are required",
+        message: "Please provide title, amount, type (income/expense), and category",
       });
+    }
+
+    const numAmount = Number(amount);
+    if (isNaN(numAmount) || numAmount <= 0) {
+      return res.status(400).json({ message: "Amount must be a positive number greater than zero" });
+    }
+
+    const normalizedType = type.toLowerCase().trim();
+    if (!["income", "expense"].includes(normalizedType)) {
+      return res.status(400).json({ message: "Type must be either 'income' or 'expense'" });
     }
 
     const transaction = await Transaction.create({
-      user: req.user.id,
-      title,
-      amount,
-      type,
-      category,
+      user: req.user._id,
+      title: title.trim(),
+      amount: numAmount,
+      type: normalizedType,
+      category: category.trim(),
+      date: date ? new Date(date) : new Date(),
+      description: description ? description.trim() : "",
     });
 
     res.status(201).json({
-      message: "Transaction Added",
+      message: "Transaction created successfully",
       transaction,
     });
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    next(error);
   }
 };
 
-// ===============================
-// Get All Transactions
-// ===============================
-
-const getTransactions = async (req, res) => {
-  try {
-    const transactions = await Transaction.find({
-      user: req.user.id,
-    }).sort({ createdAt: -1 });
-
-    res.status(200).json(transactions);
-  } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
-  }
-};
-
-// ===============================
-// Update Transaction
-// ===============================
-
-const updateTransaction = async (req, res) => {
+// @desc    Update a transaction
+// @route   PUT /api/transactions/:id
+// @access  Private
+const updateTransaction = async (req, res, next) => {
   try {
     const transaction = await Transaction.findById(req.params.id);
 
     if (!transaction) {
-      return res.status(404).json({
-        message: "Transaction not found",
-      });
+      return res.status(404).json({ message: "Transaction not found" });
     }
 
-    if (transaction.user.toString() !== req.user.id) {
-      return res.status(401).json({
-        message: "Not Authorized",
-      });
+    // Verify ownership
+    if (transaction.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Not authorized to modify this transaction" });
     }
 
-    const updatedTransaction = await Transaction.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      {
-        new: true,
-        runValidators: true,
+    const { title, amount, type, category, date, description } = req.body;
+
+    if (title) transaction.title = title.trim();
+    if (amount !== undefined) {
+      const numAmount = Number(amount);
+      if (isNaN(numAmount) || numAmount <= 0) {
+        return res.status(400).json({ message: "Amount must be a positive number" });
       }
-    );
+      transaction.amount = numAmount;
+    }
+    if (type) {
+      const normalizedType = type.toLowerCase().trim();
+      if (!["income", "expense"].includes(normalizedType)) {
+        return res.status(400).json({ message: "Type must be either 'income' or 'expense'" });
+      }
+      transaction.type = normalizedType;
+    }
+    if (category) transaction.category = category.trim();
+    if (date) transaction.date = new Date(date);
+    if (description !== undefined) transaction.description = description.trim();
+
+    const updatedTransaction = await transaction.save();
 
     res.status(200).json({
-      message: "Transaction Updated",
+      message: "Transaction updated successfully",
       transaction: updatedTransaction,
     });
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    next(error);
   }
 };
 
-// ===============================
-// Delete Transaction
-// ===============================
-
-const deleteTransaction = async (req, res) => {
+// @desc    Delete a transaction
+// @route   DELETE /api/transactions/:id
+// @access  Private
+const deleteTransaction = async (req, res, next) => {
   try {
     const transaction = await Transaction.findById(req.params.id);
 
     if (!transaction) {
-      return res.status(404).json({
-        message: "Transaction not found",
-      });
+      return res.status(404).json({ message: "Transaction not found" });
     }
 
-    if (transaction.user.toString() !== req.user.id) {
-      return res.status(401).json({
-        message: "Not Authorized",
-      });
+    // Verify ownership
+    if (transaction.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Not authorized to delete this transaction" });
     }
 
     await Transaction.findByIdAndDelete(req.params.id);
 
     res.status(200).json({
-      message: "Transaction Deleted Successfully",
+      message: "Transaction deleted successfully",
+      id: req.params.id,
     });
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
-  }
-};
-
-// ===============================
-// Dashboard Summary
-// ===============================
-
-const getSummary = async (req, res) => {
-  try {
-    const transactions = await Transaction.find({
-      user: req.user.id,
-    });
-
-    let totalIncome = 0;
-    let totalExpense = 0;
-
-    transactions.forEach((transaction) => {
-      if (transaction.type === "Income") {
-        totalIncome += transaction.amount;
-      } else {
-        totalExpense += transaction.amount;
-      }
-    });
-
-    res.status(200).json({
-      totalIncome,
-      totalExpense,
-      balance: totalIncome - totalExpense,
-      transactionCount: transactions.length,
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
-  }
-};
-
-// ===============================
-// Category Summary
-// ===============================
-
-const getCategorySummary = async (req, res) => {
-  try {
-    const summary = await Transaction.aggregate([
-      {
-        $match: {
-          user: new mongoose.Types.ObjectId(req.user.id),
-          type: "Expense",
-        },
-      },
-      {
-        $group: {
-          _id: "$category",
-          total: {
-            $sum: "$amount",
-          },
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          category: "$_id",
-          total: 1,
-        },
-      },
-    ]);
-
-    res.status(200).json(summary);
-  } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
-  }
-};
-
-// ===============================
-// Monthly Summary
-// ===============================
-
-const getMonthlySummary = async (req, res) => {
-  try {
-    const summary = await Transaction.aggregate([
-      {
-        $match: {
-          user: new mongoose.Types.ObjectId(req.user.id),
-        },
-      },
-      {
-        $group: {
-          _id: {
-            year: { $year: "$date" },
-            month: { $month: "$date" },
-          },
-          income: {
-            $sum: {
-              $cond: [
-                { $eq: ["$type", "Income"] },
-                "$amount",
-                0,
-              ],
-            },
-          },
-          expense: {
-            $sum: {
-              $cond: [
-                { $eq: ["$type", "Expense"] },
-                "$amount",
-                0,
-              ],
-            },
-          },
-        },
-      },
-      {
-        $sort: {
-          "_id.year": 1,
-          "_id.month": 1,
-        },
-      },
-    ]);
-
-    res.json(summary);
-  } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
-  }
-};
-
-// ==============================
-// Dashboard Analytics
-// ==============================
-
-const getAnalytics = async (req, res) => {
-  try {
-
-    const transactions = await Transaction.find({
-      user: req.user.id,
-    });
-
-    const incomes = transactions.filter(
-      (t) => t.type === "Income"
-    );
-
-    const expenses = transactions.filter(
-      (t) => t.type === "Expense"
-    );
-
-    const highestIncome =
-      incomes.length > 0
-        ? Math.max(...incomes.map((t) => t.amount))
-        : 0;
-
-    const highestExpense =
-      expenses.length > 0
-        ? Math.max(...expenses.map((t) => t.amount))
-        : 0;
-
-    const averageIncome =
-      incomes.length > 0
-        ? incomes.reduce((sum, t) => sum + t.amount, 0) /
-          incomes.length
-        : 0;
-
-    const averageExpense =
-      expenses.length > 0
-        ? expenses.reduce((sum, t) => sum + t.amount, 0) /
-          expenses.length
-        : 0;
-
-    const totalIncome = incomes.reduce(
-      (sum, t) => sum + t.amount,
-      0
-    );
-
-    const totalExpense = expenses.reduce(
-      (sum, t) => sum + t.amount,
-      0
-    );
-
-    const savingsRate =
-      totalIncome > 0
-        ? ((totalIncome - totalExpense) / totalIncome) * 100
-        : 0;
-
-    res.json({
-      highestIncome,
-      highestExpense,
-      averageIncome,
-      averageExpense,
-      savingsRate,
-    });
-
-  } catch (error) {
-
-    console.log(error);
-
-    res.status(500).json({
-      message: "Server Error",
-    });
-
+    next(error);
   }
 };
 
 module.exports = {
-  addTransaction,
   getTransactions,
+  getTransactionById,
+  createTransaction,
   updateTransaction,
   deleteTransaction,
-  getSummary,
-  getCategorySummary,
-  getMonthlySummary,
-  getAnalytics,
 };

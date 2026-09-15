@@ -1,436 +1,555 @@
-import Sidebar from "../components/Sidebar";
-import Navbar from "../components/Navbar";
-import { useEffect, useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
-    getTransactions,
-    deleteTransaction,
-} from "../services/transactionApi";
-import EditTransactionModal from "../components/EditTransactionModal";
+  FaPlus,
+  FaSearch,
+  FaFilter,
+  FaEdit,
+  FaTrash,
+  FaArrowUp,
+  FaArrowDown,
+  FaTag,
+  FaFileCsv,
+} from "react-icons/fa";
+import Layout from "../components/Layout";
+import TransactionModal from "../components/TransactionModal";
+import DeleteConfirmModal from "../components/DeleteConfirmModal";
+import { TableSkeleton } from "../components/LoadingSkeleton";
+import EmptyState from "../components/EmptyState";
+import {
+  getTransactions,
+  createTransaction,
+  updateTransaction,
+  deleteTransaction,
+} from "../services/transactionService";
+import { getCategories } from "../services/categoryService";
+import { formatCurrency, formatDate } from "../utils/formatters";
 import { toast } from "react-toastify";
-import AddTransactionModal from "../components/AddTransactionModal";
 
-function Transactions() {
+const Transactions = () => {
+  const [transactions, setTransactions] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-const [transactions, setTransactions] = useState([]);
+  // Filter & Search states
+  const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [sortBy, setSortBy] = useState("date_desc");
 
-const [search, setSearch] = useState("");
-const [typeFilter, setTypeFilter] = useState("All");
+  // Modal states
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState(null);
+  const [savingTransaction, setSavingTransaction] = useState(false);
 
-const [categoryFilter, setCategoryFilter] = useState("All");
-const [dateFilter, setDateFilter] = useState("");
+  // Delete modal states
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
-const [isEditOpen, setIsEditOpen] = useState(false);
-const [selectedTransaction, setSelectedTransaction] = useState(null);
-
-const [sortBy, setSortBy] = useState("newest");
-
-const [currentPage, setCurrentPage] = useState(1);
-
-const [showAddModal, setShowAddModal] = useState(false);
-
-const [loading, setLoading] = useState(true);
-
-const transactionsPerPage = 10;
-
-const loadTransactions = async () => {
-
-  try {
-
-    setLoading(true);
-
-    const data = await getTransactions();
-
-    setTransactions(data);
-
-  } catch (error) {
-
-    console.log(error);
-
-  } finally {
-
-    setLoading(false);
-
-  }
-
-};
-
-useEffect(() => {
-
-  loadTransactions();
-
-}, []);
-
-const handleEdit = (transaction) => {
-
-    setSelectedTransaction(transaction);
-
-    setIsEditOpen(true);
-
-};
-
-const handleDelete = async (id) => {
-
-    const confirmDelete = window.confirm(
-        "Are you sure you want to delete this transaction?"
-    );
-
-    if (!confirmDelete) return;
-
+  const fetchCategories = async () => {
     try {
+      const data = await getCategories();
+      setCategories(data);
+    } catch (err) {
+      console.error("Categories fetch error:", err.message);
+    }
+  };
 
-        await deleteTransaction(id);
+  const fetchTransactions = useCallback(async () => {
+    try {
+      setLoading(true);
+      const params = {};
+      if (search.trim()) params.search = search.trim();
+      if (typeFilter !== "all") params.type = typeFilter;
+      if (categoryFilter !== "all") params.category = categoryFilter;
+      if (startDate) params.startDate = startDate;
+      if (endDate) params.endDate = endDate;
+      if (sortBy) params.sortBy = sortBy;
 
-        toast.success("Transaction deleted successfully");
+      const data = await getTransactions(params);
+      setTransactions(data.transactions || []);
+    } catch (err) {
+      toast.error(err.message || "Failed to load transactions");
+    } finally {
+      setLoading(false);
+    }
+  }, [search, typeFilter, categoryFilter, startDate, endDate, sortBy]);
 
-        loadTransactions();
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
-        setCurrentPage(1);
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      fetchTransactions();
+    }, 250);
 
-    } catch (error) {
+    return () => clearTimeout(delayDebounceFn);
+  }, [fetchTransactions]);
 
-        console.log(error);
+  const handleCreateOrUpdate = async (formData) => {
+    try {
+      setSavingTransaction(true);
+      if (editingTransaction) {
+        await updateTransaction(editingTransaction._id, formData);
+        toast.success("Transaction updated successfully!");
+      } else {
+        await createTransaction(formData);
+        toast.success("Transaction created successfully!");
+      }
+      setModalOpen(false);
+      setEditingTransaction(null);
+      fetchTransactions();
+    } catch (err) {
+      toast.error(err.message || "Failed to save transaction");
+    } finally {
+      setSavingTransaction(false);
+    }
+  };
 
-        toast.error("Failed to delete transaction");
+  const handleDelete = async () => {
+    if (!transactionToDelete) return;
+    try {
+      setDeleting(true);
+      await deleteTransaction(transactionToDelete._id);
+      toast.success("Transaction removed");
+      setDeleteModalOpen(false);
+      setTransactionToDelete(null);
+      fetchTransactions();
+    } catch (err) {
+      toast.error(err.message || "Failed to delete transaction");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
+  const handleExportCSV = () => {
+    if (transactions.length === 0) {
+      toast.info("No transactions to export");
+      return;
     }
 
-};
+    const headers = ["Title", "Type", "Amount", "Category", "Date", "Description"];
+    const rows = transactions.map((t) => [
+      `"${t.title.replace(/"/g, '""')}"`,
+      t.type,
+      t.amount,
+      `"${t.category.replace(/"/g, '""')}"`,
+      new Date(t.date).toISOString().split("T")[0],
+      `"${(t.description || "").replace(/"/g, '""')}"`,
+    ]);
 
-const categories = [
-  "All",
-  ...new Set(transactions.map((transaction) => transaction.category)),
-];
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `transactions_${new Date().toISOString().split("T")[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
-const filteredTransactions = transactions.filter((transaction) => {
+  // Computed summary for filtered view
+  const filteredIncome = transactions
+    .filter((t) => t.type === "income")
+    .reduce((sum, t) => sum + t.amount, 0);
 
-  const keyword = search.toLowerCase();
-
-  const matchesSearch =
-    transaction.title.toLowerCase().includes(keyword) ||
-    transaction.category.toLowerCase().includes(keyword) ||
-    transaction.type.toLowerCase().includes(keyword);
-
-  const matchesType =
-    typeFilter === "All" ||
-    transaction.type === typeFilter;
-
-  const matchesCategory =
-    categoryFilter === "All" ||
-    transaction.category === categoryFilter;
-
-  const matchesDate =
-    !dateFilter ||
-    transaction.date.slice(0, 10) === dateFilter;
-
-  return (
-    matchesSearch &&
-    matchesType &&
-    matchesCategory &&
-    matchesDate
-  );
-
-});
-
-const sortedTransactions = [...filteredTransactions].sort((a, b) => {
-
-  switch (sortBy) {
-
-    case "newest":
-      return new Date(b.date) - new Date(a.date);
-
-    case "oldest":
-      return new Date(a.date) - new Date(b.date);
-
-    case "high":
-      return b.amount - a.amount;
-
-    case "low":
-      return a.amount - b.amount;
-
-    default:
-      return 0;
-
-  }
-
-});
-
-const indexOfLastTransaction =
-  currentPage * transactionsPerPage;
-
-const indexOfFirstTransaction =
-  indexOfLastTransaction - transactionsPerPage;
-
-const currentTransactions =
-  sortedTransactions.slice(
-    indexOfFirstTransaction,
-    indexOfLastTransaction
-  );
-
-const totalPages = Math.ceil(
-  sortedTransactions.length / transactionsPerPage
-);
-
-useEffect(() => {
-  setCurrentPage(1);
-}, [search, typeFilter, categoryFilter, dateFilter, sortBy]);
-
-if (loading) {
+  const filteredExpense = transactions
+    .filter((t) => t.type === "expense")
+    .reduce((sum, t) => sum + t.amount, 0);
 
   return (
+    <Layout
+      title="Transactions"
+      subtitle="View, search, and manage all your income and expenses"
+      onQuickAdd={() => {
+        setEditingTransaction(null);
+        setModalOpen(true);
+      }}
+    >
+      {/* Top Filter Bar & Actions */}
+      <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs mb-6 space-y-4">
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+          {/* Search Input */}
+          <div className="relative flex-1">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <FaSearch />
+            </div>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by title, category, or notes..."
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
 
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-
-      <div className="text-center">
-
-        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 mx-auto"></div>
-
-        <p className="mt-4 text-gray-600 font-medium">
-          Loading Transactions...
-        </p>
-
-      </div>
-
-    </div>
-
-  );
-
-}  
-
-return (
-
-    <div className="flex bg-gray-100 min-h-screen">
-
-      <Sidebar />
-
-      <div className="flex-1 p-4 md:p-6 lg:p-8">
-
-        <Navbar />
-
-        <div className="bg-white rounded-xl shadow-md p-6 mt-8">
-
-          <div className="flex justify-between items-center mb-6">
-
-            <h1 className="text-3xl font-bold">
-              Transactions
-            </h1>
-
+          {/* Quick Buttons */}
+          <div className="flex items-center gap-2.5">
             <button
-              onClick={() => setShowAddModal(true)}
-              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-6 py-3 rounded-xl shadow-lg transition-all duration-300"
+              onClick={handleExportCSV}
+              className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 text-sm font-semibold transition cursor-pointer"
             >
-              + Add Transaction
+              <FaFileCsv className="text-emerald-600" />
+              <span>Export CSV</span>
             </button>
 
-          </div>
-
-          <div className="flex flex-wrap gap-4 mb-6">
-
-  <input
-    type="text"
-    placeholder="Search transactions..."
-    value={search}
-    onChange={(e) => setSearch(e.target.value)}
-    className="flex-1 border rounded-xl px-4 py-3 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-  />
-
-  <select
-    value={typeFilter}
-    onChange={(e) => setTypeFilter(e.target.value)}
-    className="flex-1 border rounded-xl px-4 py-3 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-  >
-    <option value="All">All Types</option>
-    <option value="Income">Income</option>
-    <option value="Expense">Expense</option>
-  </select>
-
-  <select
-    value={categoryFilter}
-    onChange={(e) => setCategoryFilter(e.target.value)}
-    className="flex-1 border rounded-xl px-4 py-3 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-  >
-    {categories.map((category) => (
-      <option key={category} value={category}>
-        {category}
-      </option>
-    ))}
-  </select>
-
-  <input
-    type="date"
-    value={dateFilter}
-    onChange={(e) => setDateFilter(e.target.value)}
-    className="flex-1 border rounded-xl px-4 py-3 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-  />
-
-  <select
-  value={sortBy}
-  onChange={(e) => setSortBy(e.target.value)}
-  className="border rounded-xl px-4 py-2"
->
-  <option value="newest">Newest First</option>
-  <option value="oldest">Oldest First</option>
-  <option value="high">Highest Amount</option>
-  <option value="low">Lowest Amount</option>
-</select>
-</div>
-<div className="overflow-x-auto">
-
-  {sortedTransactions.length === 0 ? (
-
-    <div className="bg-white rounded-xl p-10 text-center">
-
-      <div className="text-6xl mb-5">💸</div>
-
-      <h2 className="text-xl font-bold">
-        No Transactions Yet......
-      </h2>
-
-      <p className="text-gray-500 mt-2">
-        Start tracking your finances by adding your first transaction.
-      </p>
-
-    </div>
-
-  ) : (
-
-    currentTransactions.map((transaction) => (
-
-      <div
-        key={transaction._id}
-        className="bg-white rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 p-5 mb-4 border border-gray-100"
-      >
-
-        <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-
-          <div>
-
-            <h2 className="font-bold text-xl">
-              {transaction.title}
-            </h2>
-
-            <p className="text-gray-500">
-              {transaction.category}
-            </p>
-
-            <p className="text-gray-400 text-sm">
-              {new Date(transaction.date).toLocaleDateString()}
-            </p>
-
-          </div>
-
-          <div className="text-right">
-
-            <h2
-              className={`font-bold text-2xl ${
-                transaction.type === "Income"
-                  ? "text-green-600"
-                  : "text-red-500"
-              }`}
+            <button
+              onClick={() => {
+                setEditingTransaction(null);
+                setModalOpen(true);
+              }}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-sm transition cursor-pointer"
             >
-              ₹{transaction.amount.toLocaleString()}
-            </h2>
-
-            <div className="flex gap-3 mt-3 justify-end">
-
-              <button
-                onClick={() => handleEdit(transaction)}
-                className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600"
-              >
-                Edit
-              </button>
-
-              <button
-                onClick={() => handleDelete(transaction._id)}
-                className="bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700"
-              >
-                Delete
-              </button>
-
-            </div>
-
+              <FaPlus />
+              <span>Add Transaction</span>
+            </button>
           </div>
-
         </div>
 
+        {/* Multi-Filters Row */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-3 border-t border-slate-100 text-xs">
+          {/* Type Filter */}
+          <div>
+            <label className="block text-slate-500 font-semibold mb-1">Type</label>
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="w-full p-2 rounded-lg border border-slate-300 text-slate-800 bg-white font-medium"
+            >
+              <option value="all">All Types</option>
+              <option value="income">Income Only</option>
+              <option value="expense">Expense Only</option>
+            </select>
+          </div>
+
+          {/* Category Filter */}
+          <div>
+            <label className="block text-slate-500 font-semibold mb-1">Category</label>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="w-full p-2 rounded-lg border border-slate-300 text-slate-800 bg-white font-medium"
+            >
+              <option value="all">All Categories</option>
+              {categories.map((c) => (
+                <option key={c._id} value={c.name}>
+                  {c.name} ({c.type})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Start Date */}
+          <div>
+            <label className="block text-slate-500 font-semibold mb-1">From Date</label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-full p-2 rounded-lg border border-slate-300 text-slate-800 bg-white font-medium"
+            />
+          </div>
+
+          {/* End Date */}
+          <div>
+            <label className="block text-slate-500 font-semibold mb-1">To Date</label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-full p-2 rounded-lg border border-slate-300 text-slate-800 bg-white font-medium"
+            />
+          </div>
+
+          {/* Sort By */}
+          <div className="col-span-2 sm:col-span-1">
+            <label className="block text-slate-500 font-semibold mb-1">Sort By</label>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="w-full p-2 rounded-lg border border-slate-300 text-slate-800 bg-white font-medium"
+            >
+              <option value="date_desc">Date: Newest First</option>
+              <option value="date_asc">Date: Oldest First</option>
+              <option value="amount_desc">Amount: High to Low</option>
+              <option value="amount_asc">Amount: Low to High</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Filter Summary Tags */}
+        {(typeFilter !== "all" || categoryFilter !== "all" || startDate || endDate || search) && (
+          <div className="flex items-center justify-between pt-2 text-xs text-slate-500">
+            <span>
+              Found <strong>{transactions.length}</strong> matching transactions
+            </span>
+            <button
+              onClick={() => {
+                setSearch("");
+                setTypeFilter("all");
+                setCategoryFilter("all");
+                setStartDate("");
+                setEndDate("");
+                setSortBy("date_desc");
+              }}
+              className="text-indigo-600 hover:text-indigo-800 font-semibold cursor-pointer"
+            >
+              Reset Filters
+            </button>
+          </div>
+        )}
       </div>
 
-    ))
+      {/* Filtered KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-xs text-slate-500 font-medium">Filtered Income</p>
+            <h4 className="text-lg font-bold text-emerald-600 mt-0.5">
+              +{formatCurrency(filteredIncome)}
+            </h4>
+          </div>
+          <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm">
+            <FaArrowUp />
+          </div>
+        </div>
 
-  )}
+        <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-xs text-slate-500 font-medium">Filtered Expenses</p>
+            <h4 className="text-lg font-bold text-rose-600 mt-0.5">
+              -{formatCurrency(filteredExpense)}
+            </h4>
+          </div>
+          <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-sm">
+            <FaArrowDown />
+          </div>
+        </div>
 
+        <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-xs text-slate-500 font-medium">Net for Filtered Period</p>
+            <h4
+              className={`text-lg font-bold mt-0.5 ${
+                filteredIncome - filteredExpense >= 0 ? "text-indigo-600" : "text-rose-600"
+              }`}
+            >
+              {formatCurrency(filteredIncome - filteredExpense)}
+            </h4>
+          </div>
+          <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm">
+            <FaFilter />
+          </div>
+        </div>
+      </div>
 
+      {/* Transactions Table / List */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+        {loading ? (
+          <TableSkeleton rows={6} />
+        ) : transactions.length === 0 ? (
+          <EmptyState
+            title="No transactions match your criteria"
+            description="Try clearing some search terms or filters, or add a new transaction."
+            actionText="Add Transaction"
+            onAction={() => {
+              setEditingTransaction(null);
+              setModalOpen(true);
+            }}
+          />
+        ) : (
+          <>
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    <th className="py-3.5 px-6">Transaction</th>
+                    <th className="py-3.5 px-6">Category</th>
+                    <th className="py-3.5 px-6">Date</th>
+                    <th className="py-3.5 px-6 text-right">Amount</th>
+                    <th className="py-3.5 px-6 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-sm">
+                  {transactions.map((tx) => {
+                    const isIncome = tx.type === "income";
+                    return (
+                      <tr key={tx._id} className="hover:bg-slate-50/60 transition">
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs shrink-0 ${
+                                isIncome
+                                  ? "bg-emerald-50 text-emerald-600"
+                                  : "bg-rose-50 text-rose-600"
+                              }`}
+                            >
+                              {isIncome ? <FaArrowUp /> : <FaArrowDown />}
+                            </div>
+                            <div>
+                              <p className="font-bold text-slate-900 leading-tight">
+                                {tx.title}
+                              </p>
+                              {tx.description && (
+                                <p className="text-xs text-slate-400 truncate max-w-xs mt-0.5">
+                                  {tx.description}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700">
+                            <FaTag className="text-[10px] text-slate-400" />
+                            {tx.category}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6 text-xs text-slate-500 font-medium">
+                          {formatDate(tx.date)}
+                        </td>
+                        <td className="py-4 px-6 text-right font-bold">
+                          <span
+                            className={
+                              isIncome ? "text-emerald-600" : "text-slate-900"
+                            }
+                          >
+                            {isIncome ? "+" : "-"}
+                            {formatCurrency(tx.amount)}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6 text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => {
+                                setEditingTransaction(tx);
+                                setModalOpen(true);
+                              }}
+                              className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition cursor-pointer"
+                              title="Edit transaction"
+                            >
+                              <FaEdit />
+                            </button>
+                            <button
+                              onClick={() => {
+                                setTransactionToDelete(tx);
+                                setDeleteModalOpen(true);
+                              }}
+                              className="p-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                              title="Delete transaction"
+                            >
+                              <FaTrash />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
 
-<div className="flex justify-center items-center gap-3 mt-8 flex-wrap">
+            {/* Mobile Card List */}
+            <div className="md:hidden divide-y divide-slate-100">
+              {transactions.map((tx) => {
+                const isIncome = tx.type === "income";
+                return (
+                  <div key={tx._id} className="p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm shrink-0 ${
+                            isIncome
+                              ? "bg-emerald-50 text-emerald-600"
+                              : "bg-rose-50 text-rose-600"
+                          }`}
+                        >
+                          {isIncome ? <FaArrowUp /> : <FaArrowDown />}
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-sm text-slate-900">
+                            {tx.title}
+                          </h4>
+                          <p className="text-xs text-slate-400 mt-0.5">
+                            {formatDate(tx.date)}
+                          </p>
+                        </div>
+                      </div>
+                      <span
+                        className={`text-sm font-bold ${
+                          isIncome ? "text-emerald-600" : "text-slate-900"
+                        }`}
+                      >
+                        {isIncome ? "+" : "-"}
+                        {formatCurrency(tx.amount)}
+                      </span>
+                    </div>
 
-  <button
-    disabled={currentPage === 1}
-    onClick={() => setCurrentPage(currentPage - 1)}
-    className={`px-4 py-2 rounded-lg ${
-      currentPage === 1
-        ? "bg-gray-300 cursor-not-allowed"
-        : "bg-purple-600 text-white hover:bg-purple-700"
-    }`}
-  >
-    Previous
-  </button>
+                    <div className="flex items-center justify-between pt-1 text-xs">
+                      <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-medium">
+                        {tx.category}
+                      </span>
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => {
+                            setEditingTransaction(tx);
+                            setModalOpen(true);
+                          }}
+                          className="text-indigo-600 font-semibold"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => {
+                            setTransactionToDelete(tx);
+                            setDeleteModalOpen(true);
+                          }}
+                          className="text-rose-600 font-semibold"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </div>
 
-  {Array.from({ length: totalPages }, (_, index) => (
-
-    <button
-      key={index}
-      onClick={() => setCurrentPage(index + 1)}
-      className={`w-11 h-11 rounded-full ${
-        currentPage === index + 1
-          ? "bg-purple-600 text-white"
-          : "bg-gray-200 hover:bg-gray-300"
-      }`}
-    >
-      {index + 1}
-    </button>
-
-  ))}
-
-  <button
-    disabled={currentPage === totalPages || totalPages === 0}
-    onClick={() => setCurrentPage(currentPage + 1)}
-    className={`px-4 py-2 rounded-lg ${
-      currentPage === totalPages || totalPages === 0
-        ? "bg-gray-300 cursor-not-allowed"
-        : "bg-purple-600 text-white hover:bg-purple-700"
-    }`}
-  >
-    Next
-  </button>
-
-</div>
-
-</div>
-
-</div>
-  
-</div>
-
-      <AddTransactionModal
-        isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        onTransactionAdded={() => {
-          loadTransactions();
-          setCurrentPage(1);
+      {/* Transaction Modal (Add/Edit) */}
+      <TransactionModal
+        isOpen={modalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          setEditingTransaction(null);
         }}
+        onSubmit={handleCreateOrUpdate}
+        initialData={editingTransaction}
+        categories={categories}
+        loading={savingTransaction}
       />
-      <EditTransactionModal
-        isOpen={isEditOpen}
-        onClose={() => setIsEditOpen(false)}
-        transaction={selectedTransaction}
-        onUpdated={() => {
-          loadTransactions();
-          setCurrentPage(1);
-        }}
-      />
-    </div>
 
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setTransactionToDelete(null);
+        }}
+        onConfirm={handleDelete}
+        title="Delete Transaction"
+        message={`Are you sure you want to delete "${transactionToDelete?.title}" (${formatCurrency(
+          transactionToDelete?.amount
+        )})? This cannot be undone.`}
+        loading={deleting}
+      />
+    </Layout>
   );
-
-}
+};
 
 export default Transactions;
