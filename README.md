@@ -1,253 +1,530 @@
-# ExpenseTrack — Full-Stack MERN Personal Finance & Expense Tracker
+# 💰 Expense Track — Personal Finance & Expense Tracker
 
-![License](https://img.shields.io/badge/license-ISC-blue.svg)
-![React](https://img.shields.io/badge/React-19-61dafb.svg)
-![Vite](https://img.shields.io/badge/Vite-8-646CFF.svg)
-![TailwindCSS](https://img.shields.io/badge/TailwindCSS-v4-38B2AC.svg)
-![Node.js](https://img.shields.io/badge/Node.js-Express-green.svg)
-![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248.svg)
+<p align="center">
+  <strong>A full-stack MERN application for managing personal finances, tracking expenses, setting budgets, and understanding spending patterns.</strong>
+</p>
 
-A modern, production-grade MERN (MongoDB, Express, React, Node.js) Full-Stack Personal Finance & Expense Tracker application. Built with a clean architecture, real-time database aggregations, interactive charts, category management, monthly budgeting, financial reports, and JWT authentication.
-
----
-
-## ✨ Features
-
-### 1. 🔐 Authentication & Security
-- User registration and login with JWT (JSON Web Tokens).
-- Secure password hashing using `bcryptjs`.
-- Persistent session storage in `localStorage` with automatic profile verification.
-- Protected client-side routes and server-side authorization middleware (`Bearer` token).
-- Strict user-data isolation: each user can only query, modify, or delete their own data.
-
-### 2. 📊 Live Financial Dashboard
-- **Real Database Aggregations**: No hardcoded or fake statistics.
-- 4 dynamic KPI cards: Total Balance, Total Income, Total Expenses, and Current Month Spending.
-- **Monthly Spending Trend**: Interactive multi-bar comparison of Income vs. Expense over the last 6 months (powered by Recharts).
-- **Expense Breakdown**: Donut chart displaying proportion of expenditures by category.
-- **Budget Threshold Alerts**: Reactive warning cards if monthly spending exceeds 80% or breaches 100% of the allocated budget.
-- **Recent Transactions**: Quick summary of the latest financial events with direct link to the full ledger.
-
-### 3. 💳 Transactions Management
-- Add, edit, and delete transactions with intuitive modal dialogs.
-- Detailed fields: Title, Amount, Type (Income vs. Expense), Category, Date, and Optional Notes/Description.
-- **Multi-Filter & Search Engine**: Real-time search across titles and notes, filtered by Category, Type, and Custom Date range.
-- **Sorting**: Order by newest/oldest date, highest/lowest amount.
-- **Export to CSV**: Download filtered transaction histories directly into Excel/CSV format.
-
-### 4. 🏷️ Category Management
-- Categorized tabs for **Expense Categories** and **Income Categories**.
-- Default seeded categories on registration:
-  - *Expenses*: Food, Transport, Shopping, Bills, Entertainment, Health, Education, Other.
-  - *Income*: Salary, Freelance, Business, Investment, Other.
-- Create custom categories with custom color palettes.
-- Safely delete categories with automatic transaction remapping to "Other".
-
-### 5. 🎯 Monthly Budgeting
-- Set overall monthly budgets or category-specific spending caps.
-- Dynamic visual progress bars calculating amount spent vs. remaining budget.
-- Real-time warnings when nearing (≥80%) or exceeding (≥100%) limits.
-- Historical and future budget review with interactive month & year pickers.
-
-### 6. 📈 Financial Reports & Analytics
-- Multi-period filters: *This Month*, *Last Month*, *Last 6 Months*, *This Year*, *All Time*, or *Custom Range*.
-- Detailed summary metrics (Total Income, Total Expenses, Net Savings, and Savings Rate %).
-- Cashflow trends, expense category distribution, and monthly net savings area charts.
-- Printable financial statements and CSV export.
-
-### 7. ⚙️ Profile & Settings
-- View account metadata and active status.
-- Update user display name and primary email address.
-- Change passwords securely with current password verification.
-- Safe session sign out.
+<p align="center">
+  <a href="https://expense-tracker-theta-eosin-15.vercel.app">
+    🚀 Live Demo
+  </a>
+</p>
 
 ---
 
-## 🛠️ Technology Stack
+## 🏷️ Tech Badges
 
-| Layer | Technologies |
-| :--- | :--- |
-| **Frontend** | React 19, Vite, Tailwind CSS v4, React Router v7, Axios, Recharts, React Icons, React Toastify |
-| **Backend** | Node.js, Express.js, MongoDB Atlas, Mongoose, JWT (`jsonwebtoken`), `bcryptjs`, CORS, Dotenv |
-| **Deployment** | Vercel (Frontend SPA rewrite), Render (Backend web service) |
+<p align="center">
+
+
+
+
+
+\
+
+</p>
 
 ---
 
-## 📁 Project Structure
+## 🌐 Live Application
+
+🚀 **Frontend:**
+https://expense-tracker-theta-eosin-15.vercel.app
+
+⚙️ **Backend API:**
+https://expense-tracker-pqf2.onrender.com
+
+---
+
+## 📖 About the Project
+
+**ExpenseTrack** is a full-stack personal finance management application built using the **MERN stack**.
+
+The application allows users to securely manage their income and expenses, organize transactions using categories, create monthly budgets, and analyze their financial activity through interactive dashboards and reports.
+
+The project follows a separate **React frontend + Express backend + MongoDB database** architecture and uses JWT authentication for protected user data.
+
+---
+
+# ✨ Features
+
+## 🔐 Authentication & Security
+
+* 👤 User registration and login
+* 🔑 JWT-based authentication
+* 🔒 Password hashing using `bcryptjs`
+* 🛡️ Protected routes
+* 💾 Persistent login using local storage
+* 👥 User-specific data access
+* 🔐 Secure environment variable configuration
+
+---
+
+## 📊 Financial Dashboard
+
+* 💰 Total balance
+* 📥 Total income
+* 📤 Total expenses
+* 📅 Current month spending
+* 📈 Monthly income and expense trends
+* 🥧 Expense category breakdown
+* ⚠️ Budget spending alerts
+* 🧾 Recent transactions
+
+---
+
+## 💳 Transaction Management
+
+* ➕ Add transactions
+* ✏️ Edit transactions
+* 🗑️ Delete transactions
+* 💵 Income and expense classification
+* 🏷️ Category selection
+* 📅 Transaction dates
+* 📝 Optional notes
+* 🔎 Search transactions
+* 🎯 Filter by category
+* 📌 Filter by transaction type
+* 📆 Filter by date range
+* ↕️ Sort transactions
+* 📄 Export transactions to CSV
+
+---
+
+## 🏷️ Category Management
+
+* 💸 Separate income and expense categories
+* 📂 Default categories for new users
+* ➕ Create custom categories
+* 🎨 Custom category colors
+* 🗑️ Delete categories safely
+* 🔄 Transactions can be remapped to the `Other` category
+
+---
+
+## 🎯 Budget Management
+
+* 💰 Create monthly budgets
+* 🏷️ Category-specific spending limits
+* 📊 Track budget usage
+* 💵 Calculate remaining budget
+* 📈 Visual budget progress
+* ⚠️ Spending threshold alerts
+* 📅 Review budgets by month and year
+
+---
+
+## 📈 Financial Reports & Analytics
+
+* 📅 This Month
+* 📅 Last Month
+* 📊 Last 6 Months
+* 📆 This Year
+* 📚 All Time
+* 🗓️ Custom date range
+* 💵 Total income
+* 💸 Total expenses
+* 💰 Net savings
+* 📊 Savings rate
+* 📈 Cashflow trends
+* 🥧 Expense category analysis
+* 📉 Monthly savings trends
+* 📄 CSV export
+* 🖨️ Printable reports
+
+---
+
+## ⚙️ Profile & Settings
+
+* 👤 View account information
+* ✏️ Update display name
+* 📧 Update email
+* 🔑 Change password
+* 🚪 Secure logout
+
+---
+
+# 🖥️ Screenshots
+
+> 📌 Add your actual screenshots to the `screenshots/` folder using the filenames shown below.
+
+## 🔐 Login
+
+## 📝 Register
+
+## 📊 Dashboard
+
+## 💳 Transactions
+
+## 🏷️ Categories
+
+## 🎯 Budgets
+
+## 📈 Reports
+
+## ⚙️ Settings
+
+---
+
+# 🏗️ Application Architecture
 
 ```text
-Expense-Tracker/
-├── .gitignore               # Excludes .env, node_modules, dist, and log files
-├── README.md                # Project documentation
+                    👤 USER
+                      │
+                      ▼
+              ┌───────────────┐
+              │ React + Vite  │
+              │  Frontend     │
+              └───────┬───────┘
+                      │
+                  Axios API
+                      │
+                      ▼
+              ┌───────────────┐
+              │ Express.js    │
+              │ REST API      │
+              └───────┬───────┘
+                      │
+              🔑 JWT Authentication
+                      │
+                      ▼
+              ┌───────────────┐
+              │ MongoDB Atlas │
+              │   Database    │
+              └───────────────┘
+```
+
+---
+
+# 🛠️ Tech Stack
+
+### 🎨 Frontend
+
+* ⚛️ React 19
+* ⚡ Vite
+* 🎨 Tailwind CSS v4
+* 🧭 React Router
+* 📡 Axios
+* 📊 Recharts
+* 🎨 React Icons
+* 🔔 React Toastify
+
+### ⚙️ Backend
+
+* 🟢 Node.js
+* 🚂 Express.js
+* 🍃 MongoDB Atlas
+* 🧩 Mongoose
+* 🔑 JSON Web Token
+* 🔐 bcryptjs
+* 🌐 CORS
+* 🔧 dotenv
+
+### ☁️ Deployment
+
+* ▲ Vercel — Frontend
+* 🚀 Render — Backend
+* 🍃 MongoDB Atlas — Database
+
+---
+
+# 📁 Project Structure
+
+```text
+expense-tracker/
 │
-├── backend/
-│   ├── config/
-│   │   └── db.js            # MongoDB connection logic
-│   ├── controllers/
-│   │   ├── authController.js        # Register, login, profile, password
-│   │   ├── transactionController.js # Transaction CRUD, search, filter
-│   │   ├── categoryController.js    # Category CRUD & seeding
-│   │   ├── budgetController.js      # Monthly & category budgets
-│   │   ├── reportController.js      # Time-range aggregations & trends
-│   │   └── dashboardController.js   # Live dashboard summary metrics
-│   ├── middleware/
-│   │   ├── authMiddleware.js        # JWT verification & req.user injection
-│   │   └── errorMiddleware.js       # 404 & global error handler
-│   ├── models/
-│   │   ├── User.js          # User schema with bcrypt pre-save hook
-│   │   ├── Transaction.js   # Transaction schema with compound indexes
-│   │   ├── Category.js      # Category schema with user reference
-│   │   └── Budget.js        # Budget schema with unique month/year index
-│   ├── routes/
+├── 📄 .gitignore
+├── 📄 README.md
+│
+├── 📂 backend/
+│   │
+│   ├── 📂 config/
+│   │   └── db.js
+│   │
+│   ├── 📂 controllers/
+│   │   ├── authController.js
+│   │   ├── transactionController.js
+│   │   ├── categoryController.js
+│   │   ├── budgetController.js
+│   │   ├── reportController.js
+│   │   └── dashboardController.js
+│   │
+│   ├── 📂 middleware/
+│   │   ├── authMiddleware.js
+│   │   └── errorMiddleware.js
+│   │
+│   ├── 📂 models/
+│   │   ├── User.js
+│   │   ├── Transaction.js
+│   │   ├── Category.js
+│   │   └── Budget.js
+│   │
+│   ├── 📂 routes/
 │   │   ├── authRoutes.js
 │   │   ├── transactionRoutes.js
 │   │   ├── categoryRoutes.js
 │   │   ├── budgetRoutes.js
 │   │   ├── reportRoutes.js
 │   │   └── dashboardRoutes.js
-│   ├── utils/
-│   │   └── defaultCategories.js     # Default category seeds
-│   ├── .env.example         # Backend environment template
-│   ├── package.json         # Backend dependencies & scripts
-│   └── server.js            # Express server initialization
+│   │
+│   ├── 📂 utils/
+│   │   └── defaultCategories.js
+│   │
+│   ├── 🔒 .env.example
+│   ├── 📦 package.json
+│   └── 🚀 server.js
 │
-└── frontend/
-    ├── public/
-    ├── src/
-    │   ├── components/
-    │   │   ├── Sidebar.jsx           # Responsive desktop & mobile drawer
-    │   │   ├── Navbar.jsx            # Top bar with quick actions & greetings
-    │   │   ├── Layout.jsx            # Application shell
-    │   │   ├── ProtectedRoute.jsx    # Auth route guard
-    │   │   ├── StatCard.jsx          # KPI card with color schemes
-    │   │   ├── TransactionModal.jsx  # Add/edit transaction dialog
-    │   │   ├── CategoryModal.jsx     # Add/edit category dialog
-    │   │   ├── BudgetModal.jsx       # Set monthly budget dialog
-    │   │   ├── LoadingSkeleton.jsx   # Skeleton placeholders
-    │   │   ├── EmptyState.jsx        # Empty data illustrations
-    │   │   └── DeleteConfirmModal.jsx # Confirmation prompt
-    │   ├── context/
-    │   │   └── AuthContext.jsx       # Global auth state & persistence
-    │   ├── pages/
-    │   │   ├── Dashboard.jsx
-    │   │   ├── Transactions.jsx
-    │   │   ├── Categories.jsx
-    │   │   ├── Budgets.jsx
-    │   │   ├── Reports.jsx
-    │   │   ├── Settings.jsx
-    │   │   ├── Login.jsx
-    │   │   ├── Register.jsx
-    │   │   └── NotFound.jsx
-    │   ├── services/
-    │   │   ├── api.js                # Central Axios instance with interceptors
-    │   │   ├── authService.js
-    │   │   ├── transactionService.js
-    │   │   ├── categoryService.js
-    │   │   ├── budgetService.js
-    │   │   ├── reportService.js
-    │   │   └── dashboardService.js
-    │   ├── utils/
-    │   │   └── formatters.js         # Currency & date helpers
-    │   ├── App.jsx                   # Route configuration
-    │   ├── main.jsx                  # React DOM entrypoint
-    │   └── index.css                 # Tailwind CSS directives
-    ├── .env.example         # Frontend environment template
-    ├── package.json         # Frontend dependencies & scripts
-    ├── vercel.json          # SPA route rewrite for Vercel
-    └── vite.config.js       # Vite build configuration
+├── 📂 frontend/
+│   │
+│   ├── 📂 public/
+│   │
+│   ├── 📂 src/
+│   │   ├── 📂 components/
+│   │   ├── 📂 context/
+│   │   ├── 📂 pages/
+│   │   ├── 📂 services/
+│   │   ├── 📂 utils/
+│   │   ├── App.jsx
+│   │   ├── main.jsx
+│   │   └── index.css
+│   │
+│   ├── 🔒 .env.example
+│   ├── 📦 package.json
+│   ├── vercel.json
+│   └── vite.config.js
+│
+└── 📂 screenshots/
+    ├── login.png
+    ├── register.png
+    ├── dashboard.png
+    ├── transactions.png
+    ├── categories.png
+    ├── budgets.png
+    ├── reports.png
+    └── settings.png
 ```
 
 ---
 
-## 🚀 Local Development Setup
+# 💻 Local Development
 
-### Prerequisites
-- [Node.js](https://nodejs.org/) (v18 or higher)
-- [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) account (or a local MongoDB instance)
-- Git
+## 📋 Prerequisites
 
-### 1. Clone the repository
+Before running the project locally, install:
+
+* 🟢 Node.js 18+
+* 🍃 MongoDB Atlas account or local MongoDB
+* 📦 npm
+* 🔧 Git
+
+---
+
+## 1️⃣ Clone the Repository
+
 ```bash
 git clone https://github.com/Varun-181204/expense-tracker.git
 cd expense-tracker
 ```
 
-### 2. Backend Setup
-1. Open a terminal and navigate into the `backend` folder:
-   ```bash
-   cd backend
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Create your `.env` file (refer to `.env.example`):
-   ```env
-   PORT=5000
-   MONGO_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/expenseTracker?retryWrites=true&w=majority
-   JWT_SECRET=your_super_secret_jwt_key
-   FRONTEND_URL=http://localhost:5173
-   ```
-4. Start the backend development server:
-   ```bash
-   npm run dev
-   ```
-   The API will be available at `http://localhost:5000`. Test the health check at `http://localhost:5000/api/health`.
+---
 
-### 3. Frontend Setup
-1. Open a new terminal and navigate into the `frontend` folder:
-   ```bash
-   cd frontend
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Create your `.env` file (refer to `.env.example`):
-   ```env
-   VITE_API_URL=http://localhost:5000/api
-   ```
-4. Start the Vite development server:
-   ```bash
-   npm run dev
-   ```
-5. Open your browser and navigate to `http://localhost:5173`.
+## 2️⃣ Backend Setup
+
+Navigate to the backend:
+
+```bash
+cd backend
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Create a `.env` file inside the `backend` folder:
+
+```env
+PORT=5000
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+FRONTEND_URL=http://localhost:5173
+```
+
+Start the backend:
+
+```bash
+npm run dev
+```
+
+Backend:
+
+```text
+http://localhost:5000
+```
 
 ---
 
-## 🌐 Production Deployment
+## 3️⃣ Frontend Setup
 
-### Frontend (Vercel)
-1. Push your repository to GitHub.
-2. Import your GitHub repository on [Vercel](https://vercel.com).
-3. Set the **Root Directory** to `frontend`.
-4. Add the Environment Variable:
-   - `VITE_API_URL`: `https://<your-render-backend-url>/api`
-5. The included [`vercel.json`](frontend/vercel.json) rewrites all SPA routes to `/index.html`, ensuring clean refreshes on any route.
+Open another terminal and navigate to:
 
-### Backend (Render)
-1. In [Render Dashboard](https://render.com), create a new **Web Service**.
-2. Connect your GitHub repository.
-3. Set **Root Directory** to `backend`.
-4. Set **Build Command** to `npm install`.
-5. Set **Start Command** to `npm start`.
-6. Add Environment Variables:
-   - `PORT`: `5000` (or leave default for Render)
-   - `MONGO_URI`: Your MongoDB Atlas connection URI
-   - `JWT_SECRET`: A strong random secret key
-   - `FRONTEND_URL`: `https://<your-vercel-app-url>.vercel.app`
-7. Ensure MongoDB Atlas Network Access whitelist allows connections from anywhere (`0.0.0.0/0`) for Render instances.
+```bash
+cd frontend
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Create a `.env` file:
+
+```env
+VITE_API_URL=http://localhost:5000/api
+```
+
+Start the frontend:
+
+```bash
+npm run dev
+```
+
+Frontend:
+
+```text
+http://localhost:5173
+```
 
 ---
 
-## 🔒 Security Best Practices Implemented
-- **No Secrets in Source Control**: `.gitignore` strictly protects `.env` files and logs.
-- **Password Protection**: Passwords salted and hashed with `bcryptjs`.
-- **JWT Authentication**: Expiring tokens verified on every protected API endpoint.
-- **Resource Ownership Verification**: Every update and delete operation verifies that `resource.user.toString() === req.user._id.toString()`.
-- **Data Sanitization**: Mongoose schemas enforce data types, trimming, and required constraints.
+# ☁️ Production Deployment
+
+## ▲ Frontend — Vercel
+
+The frontend is deployed using **Vercel**.
+
+### Configuration
+
+```text
+Root Directory: frontend
+```
+
+Environment variable:
+
+```text
+VITE_API_URL=https://expense-tracker-pqf2.onrender.com/api
+```
+
+### 🌐 Live URL
+
+https://expense-tracker-theta-eosin-15.vercel.app
 
 ---
 
-## 📄 License
-This project is open source and available under the [ISC License](LICENSE).
+## 🚀 Backend — Render
+
+The backend is deployed using **Render**.
+
+### Configuration
+
+```text
+Root Directory: backend
+Build Command: npm install
+Start Command: npm start
+```
+
+Required environment variables:
+
+```text
+PORT
+MONGO_URI
+JWT_SECRET
+CLOUDINARY_CLOUD_NAME
+CLOUDINARY_API_KEY
+CLOUDINARY_API_SECRET
+FRONTEND_URL
+```
+
+### ⚙️ Backend URL
+
+https://expense-tracker-pqf2.onrender.com
+
+---
+
+# 🔒 Security Practices
+
+ExpenseTrack follows basic security practices for a full-stack application:
+
+* 🔐 Password hashing with `bcryptjs`
+* 🔑 JWT authentication
+* 🛡️ Protected API routes
+* 👤 User-specific resource access
+* 🔒 Environment variables for sensitive configuration
+* 🚫 `.env` files excluded from Git
+* 🧹 Database validation through Mongoose schemas
+
+> ⚠️ Never upload your real `.env` file, passwords, API keys, database credentials, or JWT secrets to GitHub.
+
+---
+
+# 🔄 Development Workflow
+
+```text
+💻 Make Changes
+      │
+      ▼
+🧪 Test Locally
+      │
+      ▼
+📦 git add .
+      │
+      ▼
+📝 git commit -m "Update project"
+      │
+      ▼
+🚀 git push origin main
+      │
+      ▼
+🐙 GitHub
+      │
+      ├───────────────┐
+      ▼               ▼
+     ▲ Vercel       🚀 Render
+   Frontend         Backend
+      │               │
+      └───────┬───────┘
+              ▼
+        🌐 Live Application
+```
+
+---
+
+# 📌 Future Improvements
+
+* 🔁 Recurring transactions
+* 🎯 Financial goal tracking
+* 📊 More advanced analytics
+* 📱 Further mobile UI improvements
+* 🔔 Custom financial notifications
+* 📈 More detailed spending insights
+* 📤 Additional export formats
+
+---
+
+# 👨‍💻 Project
+
+**Expense Track** is a full-stack web application developed as a personal finance management project using modern web development technologies.
+
+---
+
+<p align="center">
+
+💰 **Expense Track**
+Built with ❤️ using the MERN Stack
+
+</p>
